@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>moiling</title>
+    <description>moiling's blog</description>
+    <link>http://localhost:4000/blog/</link>
+    <atom:link href="http://localhost:4000/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sat, 09 Feb 2019 15:19:19 +0800</pubDate>
+    <lastBuildDate>Sat, 09 Feb 2019 15:19:19 +0800</lastBuildDate>
+    <generator>Jekyll v3.8.5</generator>
+    
+      <item>
+        <title>对话脚本语言(DSL)使用文档</title>
+        <description>&lt;h2 id=&quot;一写在前面&quot;&gt;一、写在前面&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;格式: 「纯文本」&lt;/strong&gt;格式
+    &lt;blockquote&gt;
+      &lt;p&gt;编写时&lt;strong&gt;请勿「Word」&lt;/strong&gt;之类带修饰的文本编辑器
+最简单使用Windows自带的记事本即可
+推荐使用「 &lt;a href=&quot;http://www.sublimetext.com/&quot;&gt;&lt;strong&gt;Sublime&lt;/strong&gt;&lt;/a&gt;」进行编写(后期我可能会编写语法高亮插件)&lt;/p&gt;
+    &lt;/blockquote&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;符号: 「英文半角」&lt;/strong&gt;，如数组的分隔符为英文的 &lt;code class=&quot;highlighter-rouge&quot;&gt;,&lt;/code&gt; 而非中文的 &lt;code class=&quot;highlighter-rouge&quot;&gt;，&lt;/code&gt;  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;编码:&lt;/strong&gt; 保存时请保存为 &lt;code class=&quot;highlighter-rouge&quot;&gt;UTF-8&lt;/code&gt; 编码,其他编码在Unity中无法正常显示中文&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;后缀:&lt;/strong&gt; 文件后缀名为 &lt;code class=&quot;highlighter-rouge&quot;&gt;.txt&lt;/code&gt;  (暂时这么做就好,这个之后要修改也方便)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;二hello-world&quot;&gt;二、Hello World&lt;/h2&gt;
+
+&lt;p&gt;在介绍脚本的格式和属性之前，先给出一个简单的例子。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#tag 段标志
+@char 张三
+这是一行对话。{p}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;该脚本内容意为「张三说: “这是一行对话。”，并且把这一段的标志设为“段标志”」。&lt;/p&gt;
+
+&lt;h2 id=&quot;三脚本格式&quot;&gt;三、脚本格式&lt;/h2&gt;
+
+&lt;p&gt;脚本格式分为&lt;strong&gt;「标签部分」&lt;/strong&gt;和&lt;strong&gt;「正文部分」&lt;/strong&gt;，并按照换页操作和选择操作进行&lt;strong&gt;「分段」。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;31-分段&quot;&gt;3.1 分段&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;「分段的目的」&lt;/strong&gt;是为了给不同的对话设置不同的「属性」，如说话人物、特效、跳转标签等。故&lt;strong&gt;「分段的依据」&lt;/strong&gt;是「界面变化」，而引起「界面变化」的有: &lt;strong&gt;换页&lt;/strong&gt;、&lt;strong&gt;显示选择支&lt;/strong&gt;、&lt;strong&gt;做出选择&lt;/strong&gt;。脚本是按段来组织的，段之间就像顺序执行的函数，要把段作为「独立的整体」来看待。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;//-------- 第一段 --------
+@char RANG
+你好。{p}
+
+//---- 换页造成的第二段 ----
+再见。
+
+//-- 显示选择支造成的第三段 --
+{
+	再见。:@end
+	不再见。:@jump TAG_0
+}
+
+//--- 做出选择造成的第四段 --
+#tag 段标志
+@char ZHOU
+不再见。{p}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;32-标签&quot;&gt;3.2 标签&lt;/h3&gt;
+
+&lt;p&gt;标签作为正文的修饰，在每一个段中，「标签部分」位于「正文部分」的&lt;strong&gt;前面&lt;/strong&gt;。&lt;br /&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;h4 id=&quot;321-分类&quot;&gt;3.2.1 分类&lt;/h4&gt;
+&lt;p&gt;按&lt;strong&gt;「标签类型」&lt;/strong&gt;可以分为&lt;strong&gt;「@标签」&lt;/strong&gt;和&lt;strong&gt;「#标签」&lt;/strong&gt;。&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;strong&gt;「@标签」&lt;/strong&gt;为每段只能设置一次的标签，该标签不仅影响当前段，而且会影响之后的段，如: &lt;strong&gt;设置说话人&lt;/strong&gt;、&lt;strong&gt;设置背景音乐&lt;/strong&gt;、&lt;strong&gt;跳转&lt;/strong&gt;等操作。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;若一段出现了多个标签名相同的@标签，则只运行最后出现的标签。
+若该段未设置相应的@标签，则沿用之前段的值，如&lt;a href=&quot;https://www.yuque.com/ootaru/code_documents/190127#47edff2c&quot;&gt;3.1例子&lt;/a&gt;中第二段未设置@char，将沿用第一段中@char的值RANG，继续是阿让说话。&lt;br /&gt;设置@标签后会将之前段已经设置的对应@标签的值给覆盖，如&lt;a href=&quot;https://www.yuque.com/ootaru/code_documents/190127#47edff2c&quot;&gt;3.1例子&lt;/a&gt;中第四段设置@char为ZHOU，就会将之前设置的RANG给覆盖。
+&lt;br /&gt;&lt;br /&gt;&lt;strong&gt;「#标签」&lt;/strong&gt;为每段可以多次设置的标签，且该标签只影响当前段，如: &lt;strong&gt;设置TAG&lt;/strong&gt;、&lt;strong&gt;运行事件&lt;/strong&gt;、&lt;strong&gt;设置属性值&lt;/strong&gt;等。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;322-格式&quot;&gt;3.2.2 格式&lt;/h4&gt;
+&lt;p&gt;每个标签&lt;strong&gt;「独占一行」&lt;/strong&gt;，格式为&lt;strong&gt;「标签类型符」+「标签名」+「空格」+「属性&lt;/strong&gt;」，如:&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;@char RANG&lt;/code&gt; &lt;br /&gt;(@为标签类型符、char为标签名、RANG为属性)&lt;/p&gt;
+
+&lt;h4 id=&quot;323-多属性&quot;&gt;3.2.3 多属性&lt;/h4&gt;
+&lt;p&gt;标签最多可以有&lt;strong&gt;两个属性&lt;/strong&gt;，如 &lt;code class=&quot;highlighter-rouge&quot;&gt;#set BOOK 1&lt;/code&gt; ，属性之间也使用&lt;strong&gt;「空格」&lt;/strong&gt;隔开。&lt;br /&gt;最少可以没有属性，如 &lt;code class=&quot;highlighter-rouge&quot;&gt;@end&lt;/code&gt; 标签。&lt;/p&gt;
+
+&lt;h4 id=&quot;324-数组&quot;&gt;3.2.4 数组&lt;/h4&gt;
+&lt;p&gt;如果想给一个段设置多个相同的标签，按标签类型分为两种情况。&lt;br /&gt;&lt;strong&gt;「#标签」&lt;/strong&gt;很简单，其本身就支持多次设置，故只需要多些几行即可，如:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#set BOOK 1
+#set COIN 100
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;「@标签」&lt;/strong&gt;由于是不支持多次设置的，如果想要实现多个人物同时出现在场景中，或者多个人一起说话就要使用&lt;strong&gt;「数组格式」&lt;/strong&gt;了，如我想要让角色A和B同时说话，界面上显示玩家A在左边，玩家B和玩家C在右边，可以进行一下操作:&lt;br /&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@char A,B //@说话角色 A,B
+@face A_NORMAL,B_NORMAL,C_NORMAL L,R,R //@人物头像 A普通表情,B普通表情,C普通表情 左边,右边,右边
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这里需要注意的有:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;数组用&lt;strong&gt;「英文逗号」&lt;code class=&quot;highlighter-rouge&quot;&gt;,&lt;/code&gt; &lt;/strong&gt;隔开，最后一项后可不加，并且&lt;strong&gt;中间不允许添加「空格」&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;数组为&lt;strong&gt;每个属性一个数组&lt;/strong&gt;，属性之间还是使用「空格」隔开，千万不要写成:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@face A_NORMAL L,B_NORMAL R,C_NORMAL R //@人物头像 A普通表情 左边,B普通表情 右边,C普通表情 右边
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;读到这里可能会有一个疑问，为什么要弄这么麻烦分两种标签，v0.1不是只有@一种吗。
+嗯，主要是因为上次例会说会出现多个角色在窗口上，想到脚本中没有考虑到如果有多个相同对象怎么处理。
+其实只用一种也是可以的，设置两种标签就是为了将是否可以在一段中重复设置值给区分出来，在编写的时候不至于记混，现在看到@就知道只能设置一次，看到#就知道可以多次设置了。
+&lt;br /&gt;
+那为什么要规定只能设置一次呢，像这个数组的例子很明显char和face是有设置多次的需求的。
+其实将char和face设置多次也是可行的，但是会造成一个非常麻烦的事情，就是在更换人物的时候该怎么更换呢。
+比如一开始A、B两人都出现，说了很多段话，现在B走了只剩下A，标签该怎么处理呢。
+当然是少写一行@char B就行了呀。
+没错，如果当前段只有@char A的话就只会显示一个人，看起来很方便，但是这意味着每一段都得设置@char了，不设置的话就表示这段话不会显示任何人物(A和B都走了)，这样会增加很多工作量，所以我没选择这样的方法。&lt;/p&gt;
+
+  &lt;p&gt;还有一种解决方案就是把设置变成@add_char和@remove_char，当添加的时候设置@add_char，移除的时候设置@remove_char。
+嗯，听起来也很不错，但是又会有一个新的麻烦，就是每次换说话角色和换角色表情的时候需要两句话了，需要先remove再add，而切换说话角色和表情是个非常频繁的操作，就显得特别啰嗦。
+&lt;br /&gt;
+最后，还有一个比较方便也节省我修改工作的就是添加字段，比如需要两个人就在加一个@second_char。但这样就限制了数量了，自由度不够，比如要显示五六个人还不得加五六个字段吗……&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;33-正文&quot;&gt;3.3 正文&lt;/h3&gt;
+
+&lt;p&gt;正文内容分为两类，&lt;strong&gt;「对话」&lt;/strong&gt;和&lt;strong&gt;「选择支」&lt;/strong&gt;。&lt;br /&gt;&lt;/p&gt;
+&lt;h4 id=&quot;331-对话&quot;&gt;3.3.1 对话&lt;/h4&gt;
+&lt;p&gt;普通对话不需要任何标签修饰，脚本中的&lt;strong&gt;「换行」&lt;/strong&gt;即为游戏中的&lt;strong&gt;「换行」&lt;/strong&gt;，请勿随意换行&lt;strong&gt;。&lt;/strong&gt;&lt;br /&gt;对话中可以插入&lt;strong&gt;「对话内部标签」&lt;/strong&gt;，分为&lt;strong&gt;「操作标签」&lt;/strong&gt;和&lt;strong&gt;「样式标签」&lt;/strong&gt;。&lt;br /&gt;&lt;br /&gt;&lt;strong&gt;「操作标签」&lt;/strong&gt;以&lt;code class=&quot;highlighter-rouge&quot;&gt;{&lt;/code&gt; 和&lt;code class=&quot;highlighter-rouge&quot;&gt;}&lt;/code&gt; 包裹，如换页标签&lt;code class=&quot;highlighter-rouge&quot;&gt;{p}&lt;/code&gt; ，执行到标签时等待玩家的操作，玩家完成相应操作后继续执行。&lt;br /&gt;「操作标签」的末尾可以添加一个&lt;strong&gt;「跳转事件」&lt;/strong&gt;，格式为&lt;strong&gt;「{」+「标签」+「@」+「跳转」+「}」&lt;/strong&gt;，其中「跳转」为了简化标签只用指定跳转的「对话脚本」和「TAG」即可，如: &lt;br /&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;{p@TAG STAGE}&lt;/code&gt; &lt;br /&gt;(p为标签，TAG为跳转到的段标志，STAGE为跳转到的对话脚本)&lt;/p&gt;
+
+&lt;p&gt;如果在当前对话脚本中跳转则可以省略「对话脚本」，写作&lt;code class=&quot;highlighter-rouge&quot;&gt;{p@TAG}&lt;/code&gt; 。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;「样式标签」&lt;/strong&gt;用来修改局部文字的样式，待修改的文字由样式标签包裹，如:&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;把后面的字体加粗，&lt;span class=&quot;nt&quot;&gt;&amp;lt;b&amp;gt;&lt;/span&gt;被加粗的字体&lt;span class=&quot;nt&quot;&gt;&amp;lt;/b&amp;gt;&lt;/span&gt;。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;这部分直接使用了Unity的富文本标签，要我设计的话也是这样的，因为必须要把改变的文字包裹起来，所以必须要有这样的开始标签和结束标签，这是不可避免的&lt;strong&gt;**。&lt;/strong&gt;**&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;34-选择支&quot;&gt;3.4 选择支&lt;/h3&gt;
+
+&lt;p&gt;「选择支」以&lt;code class=&quot;highlighter-rouge&quot;&gt;{&lt;/code&gt; 和&lt;code class=&quot;highlighter-rouge&quot;&gt;}&lt;/code&gt; 包裹，但和「对话」中的「操作标签」不同的是 ，「选择支」的&lt;code class=&quot;highlighter-rouge&quot;&gt;{&lt;/code&gt; 、&lt;code class=&quot;highlighter-rouge&quot;&gt;}&lt;/code&gt;都是独占一行的。「选择支」由&lt;strong&gt;「标签域」&lt;/strong&gt;和&lt;strong&gt;「选项域」&lt;/strong&gt;组成 。与对话正文相同 ，「标签域」在「选项域」&lt;strong&gt;前面&lt;/strong&gt;，并且「标签域」的格式与对话正文相同。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;{ // 独占一行
+	标签域
+	选项域
+} // 独占一行
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;「选项域」由选项数组构成，用「英文逗号」&lt;strong&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;,&lt;/code&gt; &lt;/strong&gt;隔开，最后一项后可不加。每个选项由&lt;strong&gt;「选项名称」&lt;/strong&gt;和&lt;strong&gt;「选项标签」&lt;/strong&gt;构成，两者用「英文冒号」&lt;code class=&quot;highlighter-rouge&quot;&gt;:&lt;/code&gt; 。格式为:&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;选项名称1:选项标签1,选项名称2:选择标签2 &lt;br /&gt;(注意&lt;strong&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;,&lt;/code&gt; &lt;/strong&gt;左右和&lt;code class=&quot;highlighter-rouge&quot;&gt;:&lt;/code&gt; 左右不能添加空格)&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;「选项标签」和「外部标签」的格式相同，但是只可接部分「@标签」，不可接「#标签」(后面表格会标注)。&lt;br /&gt;如果想要在选项框出现时，&lt;strong&gt;对话框中保留文字&lt;/strong&gt;的话，可以删除对话框前「正文内容」末尾的&lt;code class=&quot;highlighter-rouge&quot;&gt;{p}&lt;/code&gt; ，即不换页，对话框的内容就会保留下来，完整例子如下: &lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;出现选项时对话框显示的文本。
+{
+	@bgm 背景音乐标记
+	选项1:@jump 段标志,
+	选项2:@end,
+	选项3:@source 段标志 脚本文件标志
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;35-注释&quot;&gt;3.5 注释&lt;/h3&gt;
+
+&lt;p&gt;在脚本中可以使用&lt;strong&gt;「注释」&lt;/strong&gt;，不会影响脚本解析，格式为&lt;strong&gt;「//」+ 「注释内容」&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#set BOOK 1   // 设置书本的值为1，此处为注释内容，不会被解析
+#set COIN 100 // 注意在每行“//”后的内容都会变成注释，请不要在注释内容后添加脚本内容
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;四标签类型&quot;&gt;四、标签类型&lt;/h2&gt;
+
+&lt;h3 id=&quot;41-标签&quot;&gt;4.1 @标签&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;标签名&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;参数一&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;参数二&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;备注&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;char&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;角色标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;指定说话角色&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;标志会统一制定好，比如「阿让」的标志是「RANG」，之后的所有标志都一样会制定一个标准&lt;br /&gt;若不想指定说话角色，使用第三人称旁白模式，可以指定角色标志为「none」，@char none，同理之后所有的标志也一样，都有一个none标志&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;name&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;名字&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;指定说话角色名称&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;不使用该标签时会默认使用@char设定的角色的默认名称，该标签主要用于覆盖默认名称，如遇见不认识角色时名字变为「???」&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;face&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;表情标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;位置(L&amp;amp;R)&lt;br /&gt;&lt;strong&gt;缺省值为L&lt;/strong&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;指定表情&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;L表示表情头像显示在左边，R表示表情显示在右边，如果有多个同位置的表情，则按顺序从左右往中间摆放，如@face A,B L,L&lt;br /&gt;表示A、B都显示在左边，但A在B的前面，说明A在最左边，B靠近中间&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;voice&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;语音标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;指定对话语音&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;bgm&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;音乐标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;指定背景音乐&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;sound&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;音效标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;指定音效&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;jump&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;跳转位置的TAG&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;跳转到当前脚本文件的某个标志处&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;此TAG为自己添加的TAG名称&lt;br /&gt;&lt;strong&gt;可用在选项后&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;source&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;跳转位置的TAG&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;跳转文件的标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;跳转到其他脚本文件的某个标志处&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;strong&gt;可用在选项后&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;fx&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;特效标签&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;设置特效&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;cg&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;cg标签&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;设置cg&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;注意，请在需要关闭cg的段前指定@cg none&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;if&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;参数名&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;参数值&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;判断当前段是否执行&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;一定要注意行文逻辑关系&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;end&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;关闭当前对话&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;默认执行到文件的末尾会自动关闭，该标签用于提前关闭对话框&lt;br /&gt;&lt;strong&gt;可用在{p}标签后&lt;/strong&gt;&lt;br /&gt;&lt;strong&gt;可用在选项后&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;none&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;什么都不做&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;对，就是什么都不做，用于放在不做任何操作和任何跳转的选择支后面&lt;br /&gt;&lt;strong&gt;可用在选项后&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;42-标签&quot;&gt;4.2 #标签&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;标签名&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;参数一&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;参数二&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;备注&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;tag&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;TAG标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;段介绍&lt;br /&gt;(可缺省)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;设置段TAG&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;在该段保存时，会将段介绍显示在存档列表中&lt;br /&gt;(tag标记过的段最好将所有属性都设置一遍，因为无法判断它是从哪跳转过来的，不知道它的上一段是怎样的情况)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;set&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;参数名&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;参数值&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;给参数设置值&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;比如对话时获得一串钥匙，就可以使用@set KEY 1来修改参数，或者改变关卡的其他状态来推进关卡的运行&lt;br /&gt;参数值可以添加表达式，如”+1”、”-1”等，在原有数值上修改，如果只设置值，将会直接覆盖原有数值&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;do&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;方法标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;执行某段方法&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;比如选择某个选项后需要打开新的界面，这类需要程序来做的事情就使用该标签指定将要执行的方法，将具体操作交给程序其他模块运行&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;item&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;道具标志&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt; &lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;出示道具&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;一段可以设置多个出示道具，顺序显示&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;43-对话内部标签&quot;&gt;4.3 对话内部标签&lt;/h3&gt;
+&lt;h4 id=&quot;431-操作标签&quot;&gt;4.3.1 操作标签&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;标签格式&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;备注&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;{s}&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;断句操作，需要玩家继续点击显示之后的文本内容，但不会换到下一个对话框&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;如果在{s}后换行了，之后的内容会在下一行出现，始终记住脚本中换行就等于游戏对话的换行&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;{p}&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;换页，需要玩家继续点击换到下一个对话框显示新的内容&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;p标签后可接跳转的TAG或end标签在脚本读取结束前强行结束对话&lt;br /&gt;如”{p@TAG_0}”、&lt;br /&gt;“{p@TAG_0 STAGE_0}”、&lt;br /&gt;“{p@end}”&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h4 id=&quot;432-样式标签&quot;&gt;4.3.2 样式标签&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;标签格式&lt;/strong&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;正常文本&lt;strong&gt;&lt;b&gt;变化文本&lt;/b&gt;&lt;/strong&gt;正常文本&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;加粗&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;正常文本&lt;strong&gt;&lt;i&gt;**&lt;em&gt;变化文本&lt;/em&gt;**&lt;/i&gt;&lt;/strong&gt;正常文本&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;斜体&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;正常文本&lt;strong&gt;&amp;lt;size=18&amp;gt;&lt;/strong&gt;变化文本&lt;strong&gt;&amp;lt;/b&amp;gt;&lt;/strong&gt;正常文本&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;字号&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;正常文本&lt;strong&gt;&amp;lt;color=#F07842&amp;gt;&lt;/strong&gt;变化文本&lt;strong&gt;&amp;lt;/b&amp;gt;&lt;/strong&gt;正常文本&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;颜色&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;i&gt;&lt;em&gt;字&lt;b&gt;_&lt;strong&gt;_字字字_&lt;/strong&gt;_&lt;/b&gt;字&lt;/em&gt;&lt;/i&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;嵌套使用&lt;br /&gt;(开始的顺序和结束的顺序要相反，不能出现形如”&lt;i&gt;字&lt;b&gt;字&amp;lt;/i&amp;gt;字&lt;/b&gt;“的情况)&lt;/i&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+</description>
+        <pubDate>Fri, 01 Feb 2019 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/blog/2019/02/01/DSL/</link>
+        <guid isPermaLink="true">http://localhost:4000/blog/2019/02/01/DSL/</guid>
+        
+        <category>DSL</category>
+        
+        
+      </item>
+    
+  </channel>
+</rss>

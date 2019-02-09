@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="moiling's blog">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/blog/img/favicon.ico">
+
+    <title>对话脚本语言(DSL)使用文档 - moiling</title>
+
+    <link rel="canonical" href="http://localhost:4000/blog/2019/02/01/DSL/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/blog/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/blog/css/hux-blog.min.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="/blog/css/syntax.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="http://cdn.staticfile.org/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/blog/">moiling</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/blog/">Home</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/blog/about/">About</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/blog/tags/">Tags</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="/blog//img/post_dsl.jpg" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('/blog//img/post_dsl.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/blog/tags/#DSL" title="DSL">DSL</a>
+                        
+                    </div>
+                    <h1>对话脚本语言(DSL)使用文档</h1>
+                    
+                    
+                    <h2 class="subheading">当前版本：v0.3</h2>
+                    
+                    <span class="meta">Posted by moiling on February 1, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h2 id="一写在前面">一、写在前面</h2>
+
+<ul>
+  <li><strong>格式: 「纯文本」</strong>格式
+    <blockquote>
+      <p>编写时<strong>请勿「Word」</strong>之类带修饰的文本编辑器
+最简单使用Windows自带的记事本即可
+推荐使用「 <a href="http://www.sublimetext.com/"><strong>Sublime</strong></a>」进行编写(后期我可能会编写语法高亮插件)</p>
+    </blockquote>
+  </li>
+  <li><strong>符号: 「英文半角」</strong>，如数组的分隔符为英文的 <code class="highlighter-rouge">,</code> 而非中文的 <code class="highlighter-rouge">，</code>  </li>
+  <li><strong>编码:</strong> 保存时请保存为 <code class="highlighter-rouge">UTF-8</code> 编码,其他编码在Unity中无法正常显示中文</li>
+  <li><strong>后缀:</strong> 文件后缀名为 <code class="highlighter-rouge">.txt</code>  (暂时这么做就好,这个之后要修改也方便)</li>
+</ul>
+
+<h2 id="二hello-world">二、Hello World</h2>
+
+<p>在介绍脚本的格式和属性之前，先给出一个简单的例子。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#tag 段标志
+@char 张三
+这是一行对话。{p}
+</code></pre></div></div>
+
+<p>该脚本内容意为「张三说: “这是一行对话。”，并且把这一段的标志设为“段标志”」。</p>
+
+<h2 id="三脚本格式">三、脚本格式</h2>
+
+<p>脚本格式分为<strong>「标签部分」</strong>和<strong>「正文部分」</strong>，并按照换页操作和选择操作进行<strong>「分段」。</strong></p>
+
+<h3 id="31-分段">3.1 分段</h3>
+
+<p><strong>「分段的目的」</strong>是为了给不同的对话设置不同的「属性」，如说话人物、特效、跳转标签等。故<strong>「分段的依据」</strong>是「界面变化」，而引起「界面变化」的有: <strong>换页</strong>、<strong>显示选择支</strong>、<strong>做出选择</strong>。脚本是按段来组织的，段之间就像顺序执行的函数，要把段作为「独立的整体」来看待。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//-------- 第一段 --------
+@char RANG
+你好。{p}
+
+//---- 换页造成的第二段 ----
+再见。
+
+//-- 显示选择支造成的第三段 --
+{
+	再见。:@end
+	不再见。:@jump TAG_0
+}
+
+//--- 做出选择造成的第四段 --
+#tag 段标志
+@char ZHOU
+不再见。{p}
+</code></pre></div></div>
+
+<h3 id="32-标签">3.2 标签</h3>
+
+<p>标签作为正文的修饰，在每一个段中，「标签部分」位于「正文部分」的<strong>前面</strong>。<br /><br /></p>
+<h4 id="321-分类">3.2.1 分类</h4>
+<p>按<strong>「标签类型」</strong>可以分为<strong>「@标签」</strong>和<strong>「#标签」</strong>。<br /><br /><br /><strong>「@标签」</strong>为每段只能设置一次的标签，该标签不仅影响当前段，而且会影响之后的段，如: <strong>设置说话人</strong>、<strong>设置背景音乐</strong>、<strong>跳转</strong>等操作。</p>
+<blockquote>
+  <p>若一段出现了多个标签名相同的@标签，则只运行最后出现的标签。
+若该段未设置相应的@标签，则沿用之前段的值，如<a href="https://www.yuque.com/ootaru/code_documents/190127#47edff2c">3.1例子</a>中第二段未设置@char，将沿用第一段中@char的值RANG，继续是阿让说话。<br />设置@标签后会将之前段已经设置的对应@标签的值给覆盖，如<a href="https://www.yuque.com/ootaru/code_documents/190127#47edff2c">3.1例子</a>中第四段设置@char为ZHOU，就会将之前设置的RANG给覆盖。
+<br /><br /><strong>「#标签」</strong>为每段可以多次设置的标签，且该标签只影响当前段，如: <strong>设置TAG</strong>、<strong>运行事件</strong>、<strong>设置属性值</strong>等。</p>
+</blockquote>
+
+<h4 id="322-格式">3.2.2 格式</h4>
+<p>每个标签<strong>「独占一行」</strong>，格式为<strong>「标签类型符」+「标签名」+「空格」+「属性</strong>」，如:<br /><br /><br /><code class="highlighter-rouge">@char RANG</code> <br />(@为标签类型符、char为标签名、RANG为属性)</p>
+
+<h4 id="323-多属性">3.2.3 多属性</h4>
+<p>标签最多可以有<strong>两个属性</strong>，如 <code class="highlighter-rouge">#set BOOK 1</code> ，属性之间也使用<strong>「空格」</strong>隔开。<br />最少可以没有属性，如 <code class="highlighter-rouge">@end</code> 标签。</p>
+
+<h4 id="324-数组">3.2.4 数组</h4>
+<p>如果想给一个段设置多个相同的标签，按标签类型分为两种情况。<br /><strong>「#标签」</strong>很简单，其本身就支持多次设置，故只需要多些几行即可，如:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#set BOOK 1
+#set COIN 100
+</code></pre></div></div>
+
+<p><strong>「@标签」</strong>由于是不支持多次设置的，如果想要实现多个人物同时出现在场景中，或者多个人一起说话就要使用<strong>「数组格式」</strong>了，如我想要让角色A和B同时说话，界面上显示玩家A在左边，玩家B和玩家C在右边，可以进行一下操作:<br /><br /></p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@char A,B //@说话角色 A,B
+@face A_NORMAL,B_NORMAL,C_NORMAL L,R,R //@人物头像 A普通表情,B普通表情,C普通表情 左边,右边,右边
+</code></pre></div></div>
+
+<p>这里需要注意的有:</p>
+<ul>
+  <li>数组用<strong>「英文逗号」<code class="highlighter-rouge">,</code> </strong>隔开，最后一项后可不加，并且<strong>中间不允许添加「空格」</strong></li>
+  <li>数组为<strong>每个属性一个数组</strong>，属性之间还是使用「空格」隔开，千万不要写成:</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@face A_NORMAL L,B_NORMAL R,C_NORMAL R //@人物头像 A普通表情 左边,B普通表情 右边,C普通表情 右边
+</code></pre></div></div>
+
+<blockquote>
+  <p>读到这里可能会有一个疑问，为什么要弄这么麻烦分两种标签，v0.1不是只有@一种吗。
+嗯，主要是因为上次例会说会出现多个角色在窗口上，想到脚本中没有考虑到如果有多个相同对象怎么处理。
+其实只用一种也是可以的，设置两种标签就是为了将是否可以在一段中重复设置值给区分出来，在编写的时候不至于记混，现在看到@就知道只能设置一次，看到#就知道可以多次设置了。
+<br />
+那为什么要规定只能设置一次呢，像这个数组的例子很明显char和face是有设置多次的需求的。
+其实将char和face设置多次也是可行的，但是会造成一个非常麻烦的事情，就是在更换人物的时候该怎么更换呢。
+比如一开始A、B两人都出现，说了很多段话，现在B走了只剩下A，标签该怎么处理呢。
+当然是少写一行@char B就行了呀。
+没错，如果当前段只有@char A的话就只会显示一个人，看起来很方便，但是这意味着每一段都得设置@char了，不设置的话就表示这段话不会显示任何人物(A和B都走了)，这样会增加很多工作量，所以我没选择这样的方法。</p>
+
+  <p>还有一种解决方案就是把设置变成@add_char和@remove_char，当添加的时候设置@add_char，移除的时候设置@remove_char。
+嗯，听起来也很不错，但是又会有一个新的麻烦，就是每次换说话角色和换角色表情的时候需要两句话了，需要先remove再add，而切换说话角色和表情是个非常频繁的操作，就显得特别啰嗦。
+<br />
+最后，还有一个比较方便也节省我修改工作的就是添加字段，比如需要两个人就在加一个@second_char。但这样就限制了数量了，自由度不够，比如要显示五六个人还不得加五六个字段吗……</p>
+</blockquote>
+
+<h3 id="33-正文">3.3 正文</h3>
+
+<p>正文内容分为两类，<strong>「对话」</strong>和<strong>「选择支」</strong>。<br /></p>
+<h4 id="331-对话">3.3.1 对话</h4>
+<p>普通对话不需要任何标签修饰，脚本中的<strong>「换行」</strong>即为游戏中的<strong>「换行」</strong>，请勿随意换行<strong>。</strong><br />对话中可以插入<strong>「对话内部标签」</strong>，分为<strong>「操作标签」</strong>和<strong>「样式标签」</strong>。<br /><br /><strong>「操作标签」</strong>以<code class="highlighter-rouge">{</code> 和<code class="highlighter-rouge">}</code> 包裹，如换页标签<code class="highlighter-rouge">{p}</code> ，执行到标签时等待玩家的操作，玩家完成相应操作后继续执行。<br />「操作标签」的末尾可以添加一个<strong>「跳转事件」</strong>，格式为<strong>「{」+「标签」+「@」+「跳转」+「}」</strong>，其中「跳转」为了简化标签只用指定跳转的「对话脚本」和「TAG」即可，如: <br /><code class="highlighter-rouge">{p@TAG STAGE}</code> <br />(p为标签，TAG为跳转到的段标志，STAGE为跳转到的对话脚本)</p>
+
+<p>如果在当前对话脚本中跳转则可以省略「对话脚本」，写作<code class="highlighter-rouge">{p@TAG}</code> 。</p>
+
+<p><strong>「样式标签」</strong>用来修改局部文字的样式，待修改的文字由样式标签包裹，如:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>把后面的字体加粗，<span class="nt">&lt;b&gt;</span>被加粗的字体<span class="nt">&lt;/b&gt;</span>。
+</code></pre></div></div>
+
+<blockquote>
+  <p>这部分直接使用了Unity的富文本标签，要我设计的话也是这样的，因为必须要把改变的文字包裹起来，所以必须要有这样的开始标签和结束标签，这是不可避免的<strong>**。</strong>**</p>
+</blockquote>
+
+<h3 id="34-选择支">3.4 选择支</h3>
+
+<p>「选择支」以<code class="highlighter-rouge">{</code> 和<code class="highlighter-rouge">}</code> 包裹，但和「对话」中的「操作标签」不同的是 ，「选择支」的<code class="highlighter-rouge">{</code> 、<code class="highlighter-rouge">}</code>都是独占一行的。「选择支」由<strong>「标签域」</strong>和<strong>「选项域」</strong>组成 。与对话正文相同 ，「标签域」在「选项域」<strong>前面</strong>，并且「标签域」的格式与对话正文相同。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{ // 独占一行
+	标签域
+	选项域
+} // 独占一行
+</code></pre></div></div>
+<p><br /><br />「选项域」由选项数组构成，用「英文逗号」<strong><code class="highlighter-rouge">,</code> </strong>隔开，最后一项后可不加。每个选项由<strong>「选项名称」</strong>和<strong>「选项标签」</strong>构成，两者用「英文冒号」<code class="highlighter-rouge">:</code> 。格式为:<br /><br /><br />选项名称1:选项标签1,选项名称2:选择标签2 <br />(注意<strong><code class="highlighter-rouge">,</code> </strong>左右和<code class="highlighter-rouge">:</code> 左右不能添加空格)<br /><br /><br />「选项标签」和「外部标签」的格式相同，但是只可接部分「@标签」，不可接「#标签」(后面表格会标注)。<br />如果想要在选项框出现时，<strong>对话框中保留文字</strong>的话，可以删除对话框前「正文内容」末尾的<code class="highlighter-rouge">{p}</code> ，即不换页，对话框的内容就会保留下来，完整例子如下: </p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>出现选项时对话框显示的文本。
+{
+	@bgm 背景音乐标记
+	选项1:@jump 段标志,
+	选项2:@end,
+	选项3:@source 段标志 脚本文件标志
+}
+</code></pre></div></div>
+
+<h3 id="35-注释">3.5 注释</h3>
+
+<p>在脚本中可以使用<strong>「注释」</strong>，不会影响脚本解析，格式为<strong>「//」+ 「注释内容」</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#set BOOK 1   // 设置书本的值为1，此处为注释内容，不会被解析
+#set COIN 100 // 注意在每行“//”后的内容都会变成注释，请不要在注释内容后添加脚本内容
+</code></pre></div></div>
+
+<h2 id="四标签类型">四、标签类型</h2>
+
+<h3 id="41-标签">4.1 @标签</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"><strong>标签名</strong></th>
+      <th style="text-align: center"><strong>参数一</strong></th>
+      <th style="text-align: center"><strong>参数二</strong></th>
+      <th style="text-align: center"><strong>说明</strong></th>
+      <th style="text-align: center"><strong>备注</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">char</td>
+      <td style="text-align: center">角色标志</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">指定说话角色</td>
+      <td style="text-align: center">标志会统一制定好，比如「阿让」的标志是「RANG」，之后的所有标志都一样会制定一个标准<br />若不想指定说话角色，使用第三人称旁白模式，可以指定角色标志为「none」，@char none，同理之后所有的标志也一样，都有一个none标志</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">name</td>
+      <td style="text-align: center">名字</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">指定说话角色名称</td>
+      <td style="text-align: center">不使用该标签时会默认使用@char设定的角色的默认名称，该标签主要用于覆盖默认名称，如遇见不认识角色时名字变为「???」</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">face</td>
+      <td style="text-align: center">表情标志</td>
+      <td style="text-align: center">位置(L&amp;R)<br /><strong>缺省值为L</strong></td>
+      <td style="text-align: center">指定表情</td>
+      <td style="text-align: center">L表示表情头像显示在左边，R表示表情显示在右边，如果有多个同位置的表情，则按顺序从左右往中间摆放，如@face A,B L,L<br />表示A、B都显示在左边，但A在B的前面，说明A在最左边，B靠近中间</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">voice</td>
+      <td style="text-align: center">语音标志</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">指定对话语音</td>
+      <td style="text-align: center"> </td>
+    </tr>
+    <tr>
+      <td style="text-align: center">bgm</td>
+      <td style="text-align: center">音乐标志</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">指定背景音乐</td>
+      <td style="text-align: center"> </td>
+    </tr>
+    <tr>
+      <td style="text-align: center">sound</td>
+      <td style="text-align: center">音效标志</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">指定音效</td>
+      <td style="text-align: center"> </td>
+    </tr>
+    <tr>
+      <td style="text-align: center">jump</td>
+      <td style="text-align: center">跳转位置的TAG</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">跳转到当前脚本文件的某个标志处</td>
+      <td style="text-align: center">此TAG为自己添加的TAG名称<br /><strong>可用在选项后</strong></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">source</td>
+      <td style="text-align: center">跳转位置的TAG</td>
+      <td style="text-align: center">跳转文件的标志</td>
+      <td style="text-align: center">跳转到其他脚本文件的某个标志处</td>
+      <td style="text-align: center"><strong>可用在选项后</strong></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">fx</td>
+      <td style="text-align: center">特效标签</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">设置特效</td>
+      <td style="text-align: center"> </td>
+    </tr>
+    <tr>
+      <td style="text-align: center">cg</td>
+      <td style="text-align: center">cg标签</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">设置cg</td>
+      <td style="text-align: center">注意，请在需要关闭cg的段前指定@cg none</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">if</td>
+      <td style="text-align: center">参数名</td>
+      <td style="text-align: center">参数值</td>
+      <td style="text-align: center">判断当前段是否执行</td>
+      <td style="text-align: center">一定要注意行文逻辑关系</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">end</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">关闭当前对话</td>
+      <td style="text-align: center">默认执行到文件的末尾会自动关闭，该标签用于提前关闭对话框<br /><strong>可用在{p}标签后</strong><br /><strong>可用在选项后</strong></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">none</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">什么都不做</td>
+      <td style="text-align: center">对，就是什么都不做，用于放在不做任何操作和任何跳转的选择支后面<br /><strong>可用在选项后</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="42-标签">4.2 #标签</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"><strong>标签名</strong></th>
+      <th style="text-align: center"><strong>参数一</strong></th>
+      <th style="text-align: center"><strong>参数二</strong></th>
+      <th style="text-align: center"><strong>说明</strong></th>
+      <th style="text-align: center"><strong>备注</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">tag</td>
+      <td style="text-align: center">TAG标志</td>
+      <td style="text-align: center">段介绍<br />(可缺省)</td>
+      <td style="text-align: center">设置段TAG</td>
+      <td style="text-align: center">在该段保存时，会将段介绍显示在存档列表中<br />(tag标记过的段最好将所有属性都设置一遍，因为无法判断它是从哪跳转过来的，不知道它的上一段是怎样的情况)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">set</td>
+      <td style="text-align: center">参数名</td>
+      <td style="text-align: center">参数值</td>
+      <td style="text-align: center">给参数设置值</td>
+      <td style="text-align: center">比如对话时获得一串钥匙，就可以使用@set KEY 1来修改参数，或者改变关卡的其他状态来推进关卡的运行<br />参数值可以添加表达式，如”+1”、”-1”等，在原有数值上修改，如果只设置值，将会直接覆盖原有数值</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">do</td>
+      <td style="text-align: center">方法标志</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">执行某段方法</td>
+      <td style="text-align: center">比如选择某个选项后需要打开新的界面，这类需要程序来做的事情就使用该标签指定将要执行的方法，将具体操作交给程序其他模块运行</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">item</td>
+      <td style="text-align: center">道具标志</td>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">出示道具</td>
+      <td style="text-align: center">一段可以设置多个出示道具，顺序显示</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="43-对话内部标签">4.3 对话内部标签</h3>
+<h4 id="431-操作标签">4.3.1 操作标签</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"><strong>标签格式</strong></th>
+      <th style="text-align: center"><strong>说明</strong></th>
+      <th style="text-align: center"><strong>备注</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">{s}</td>
+      <td style="text-align: center">断句操作，需要玩家继续点击显示之后的文本内容，但不会换到下一个对话框</td>
+      <td style="text-align: center">如果在{s}后换行了，之后的内容会在下一行出现，始终记住脚本中换行就等于游戏对话的换行</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">{p}</td>
+      <td style="text-align: center">换页，需要玩家继续点击换到下一个对话框显示新的内容</td>
+      <td style="text-align: center">p标签后可接跳转的TAG或end标签在脚本读取结束前强行结束对话<br />如”{p@TAG_0}”、<br />“{p@TAG_0 STAGE_0}”、<br />“{p@end}”</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="432-样式标签">4.3.2 样式标签</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"><strong>标签格式</strong></th>
+      <th style="text-align: center"><strong>说明</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">正常文本<strong><b>变化文本</b></strong>正常文本</td>
+      <td style="text-align: center">加粗</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">正常文本<strong><i>**<em>变化文本</em>**</i></strong>正常文本</td>
+      <td style="text-align: center">斜体</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">正常文本<strong>&lt;size=18&gt;</strong>变化文本<strong>&lt;/b&gt;</strong>正常文本</td>
+      <td style="text-align: center">字号</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">正常文本<strong>&lt;color=#F07842&gt;</strong>变化文本<strong>&lt;/b&gt;</strong>正常文本</td>
+      <td style="text-align: center">颜色</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><i><em>字<b>_<strong>_字字字_</strong>_</b>字</em></i></td>
+      <td style="text-align: center">嵌套使用<br />(开始的顺序和结束的顺序要相反，不能出现形如”<i>字<b>字&lt;/i&gt;字</b>“的情况)</i></td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+                <hr>
+
+                
+
+
+                <ul class="pager">
+                    
+                    
+                </ul>
+
+
+                
+
+                
+
+            </div>
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+        				
+                            
+        				
+        			</div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="#">Foo</a></li>
+                    
+                        <li><a href="#">Bar</a></li>
+                    
+                        <li><a href="#">Example Friends</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("http://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+                    
+                    <li>
+                        <a href="https://twitter.com/moiling96">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/moiling">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+
+
+                    
+                    <li>
+                        <a target="_blank" href="https://www.facebook.com/moiling">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/moiling">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; moiling 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/blog/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/blog/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/blog/js/hux-blog.min.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("http://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
