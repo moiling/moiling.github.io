@@ -1,9 +1,9 @@
 # Site settings
-title: moiling
-SEOTitle: moiling
+title: MOI
+SEOTitle: MOI
 header-img: img/home-bg.jpg
 email: moiling1996@gmail.com
-description: "moiling's blog"
+description: "THE MOI'S WORLD"
 keyword: ""
 url: "moiling.github.io"              # your host, for absolute URL
 baseurl: ""         # for example, '/blog' if your blog hosted on 'host/blog'
@@ -68,27 +68,27 @@ kramdown:
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "喜欢画画，也喜欢用计算机来画画。"
+sidebar-about-description: "超级喜欢「用」计算机画画～<br />     目前正「一生悬命」学习中！"
 sidebar-avatar: /img/avatar-moi.png      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
 
 # Featured Tags
 featured-tags: true                     # whether or not using Feature-Tags
-featured-condition-size: 1              # A tag will be featured if the size of it is more than this condition value
+featured-condition-size: 0              # A tag will be featured if the size of it is more than this condition value
 
 
 
 # Friends
 friends: [
     {
-        title: "Foo",
+        title: "I",
         href: "#"
     },{
-        title: "Bar",
+        title: "Want",
         href: "#"
     },{
-        title: "Example Friends",
+        title: "More Friends",
         href: "#"
     }
 ]
