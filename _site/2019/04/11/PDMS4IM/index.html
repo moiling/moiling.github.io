@@ -10,9 +10,9 @@
     <meta name="keyword"  content="">
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <title>Hello World! - MOI</title>
+    <title>PDMS for Image Matting - MOI</title>
 
-    <link rel="canonical" href="http://localhost:4000/2019/04/09/Hello-World/">
+    <link rel="canonical" href="http://localhost:4000/2019/04/11/PDMS4IM/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -144,15 +144,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#Life" title="Life">Life</a>
+                        <a class="tag" href="/tags/#CV" title="CV">CV</a>
                         
                     </div>
-                    <h1>Hello World!</h1>
+                    <h1>PDMS for Image Matting</h1>
                     
                     
-                    <h2 class="subheading">我的博客开通啦！</h2>
+                    <h2 class="subheading">Pixel-level Discrete Multiobjective Sampling for Image Matting</h2>
                     
-                    <span class="meta">Posted by moiling on April 9, 2019</span>
+                    <span class="meta">Posted by moiling on April 11, 2019</span>
                 </div>
             </div>
         </div>
@@ -170,19 +170,136 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h2 id="先说原因">先说原因</h2>
-<p>最近总算是把考试给结束掉了，要开启新的学习篇章了，把学习的艰难过程做一个记录吧！<br />
-<br />
-这段时间面试备考，回顾了以前做过的项目和记录的学习笔记，感觉就是，“哇！我学了这么多东西吗！为什么没有好好地记录下来呢？”<br />
-<br />
-虽然很多过程看起来都很愚蠢，但都是成长的一部分啊，说不定还有其他的朋友和我一样往坑里跳！<br />
-<br /></p>
+				<h2 id="首先">首先</h2>
 
-<h2 id="再说内容">再说内容</h2>
-<p>内容主要以我平时的学习记录为主，一些知识的总结，踩坑记录等等。<br />
-<br />
-有时间的话再聊聊一些生活上的事情，但多半我是懒得写的（笑）。</p>
+<p>终于完整地读完第一篇论文了！<br />一篇师兄写的关于抠图技术的论文《<a href="https://ieeexplore.ieee.org/document/8660585">Pixel-level Discrete Multiobjective Sampling for Image Matting</a>》。<br />我的知识实在是不够啊，只能稍作了解。<br />现记录如下，有理解错误和不足的地方会及时改正。:)</p>
 
+<h2 id="关于抠图">关于抠图</h2>
+
+<p>「<strong>抠图</strong>」的主要任务很简单，就是从一张图片中，把你需要的物体(前景)从图像中提取出来。其操作是通过评估每个像素点的透明度来完成的。<br /></p>
+<blockquote>
+  <p>Image matting refers to the soft extraction of foreground objects from a color image by estimating the opacity of
+each pixel.</p>
+</blockquote>
+
+<h2 id="抠图方法">抠图方法</h2>
+
+<h3 id="一个重要公式">一个重要公式</h3>
+
+<script type="math/tex; mode=display">I_{i} = \alpha F_{i} + (1-\alpha) B_{i}</script>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>I 为该像素由我们肉眼观察到的颜色
+F 为该像素对应的前景的颜色
+B 为该像素对应的背景的颜色
+i 表示通道，就是R G B三个通道啦
+
+其实就是一个颜色叠加，用 α 和 1-α 来表示前景/背景的透明度
+</code></pre></div></div>
+
+<h3 id="抠图所需内容">抠图所需内容</h3>
+
+<ol>
+  <li>一张待抠图片（当然）</li>
+  <li>一张大致确定前景/背景位置的图片</li>
+</ol>
+
+<p>对于第 2 个，可能会比较陌生，但看到下图就很容易理解了。<br />
+其实就是一个用来划分区域的「<strong>三色图</strong>」。<br />
+「<strong>黑色区域</strong>」表示确定是「<strong>背景</strong>」的区域；<br />
+「<strong>白色区域</strong>」表示确定是「<strong>前景</strong>」的区域；<br />
+「<strong>灰色区域</strong>」表示「<strong>不确定</strong>」的区域。<br />
+<strong>而抠图算法的最终目的，就是消除这个不确定的区域。</strong><br />
+<br />
+有「<strong>trimap</strong>」和「<strong>scribble</strong>」两种，trimap 比较精准，而 scribble 就是用户手画的随便指定了一下前景和背景区域。<br />
+当然后者更便于用户使用，但确定的区域少了，难度也随之增加了。<br /></p>
+
+<p>（配图，原图+trimap+scribble）</p>
+
+<h3 id="抠图的产物">抠图的产物</h3>
+
+<s>这还用说吗！当然是抠出来的图啊！</s>
+<p><strong>注意了（敲黑板）</strong>！这里可能会有人和我之前一样进入一个误区，那就是抠图的最终产物是一张前景图。<br />
+其实不是的，抠图的产物是一个叫做「<strong>Alpha mattes</strong>」的东西，如下图所示。<br /></p>
+
+<p>（配图，Alpha mattes）</p>
+
+<p>就是一个蒙版，每个像素的灰度值代表透明度。<br />
+「<strong>黑色</strong>」代表该像素透明度为 <code class="highlighter-rouge">0</code>；<br />
+「<strong>白色</strong>」代卖该像素透明度为 <code class="highlighter-rouge">1</code>；<br />
+「<strong>灰色</strong>」按照灰度确定该像素的透明度。<br /></p>
+
+<p>有了这个 Alpha mattes 我们就已经把前景给提取出来了。<br /></p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>至于所说的前景图，师兄说那是「图像合成」的事了。
+而且，如果用于图像合成的话，不仅仅需要生成一个 Alpha mattes 还需要一个「F」，即一个前景色的图！
+
+为什么呢？我放在最后「思考」中介绍吧，一直扩展还下不下课了！喂喂！
+</code></pre></div></div>
+
+<h3 id="现有方法">现有方法</h3>
+
+<ol>
+  <li>基于采样算法 Sampling-Based</li>
+  <li>基于遗传算法 Propagation-Based</li>
+  <li>以上两者混合 Hybrid Methods</li>
+</ol>
+
+<p>该论文的做法是基于采样的，所以比较详细说明了采样，其他两种我的脑子告诉我它不会，等我喂饱它之后再来补充。</p>
+
+<h3 id="基于采样方法">基于采样方法</h3>
+
+<p>基于采样的方法又分为了「<strong>参数型 Parametric</strong>」和「<strong>无参型 Non-Parametric</strong>」两种。<br />
+先说结论，该论文用的是「无参型」。</p>
+
+<h4 id="parametric">Parametric</h4>
+
+<p>和该论文实现无关，贴上原文观摩观摩就好啦。</p>
+<blockquote>
+  <p>In parametric methods, pixel colors are assumed to obey a specific distribution, and the distribution parameters are estimated from the pixels in known regions. Alpha values are estimated according to the distance between the color of the unknown pixel and the color distribution of known regions.</p>
+</blockquote>
+
+<h4 id="non-parametric">Non-Parametric</h4>
+
+<p>这个方法就是说呢，从之前的「Trimap」或「Scribble」里得到了已知的「前景区域」和「背景区域」。<br />
+对于某一未知区域的像素点，从以上两个确定区域中选取一对像素作为样本，即得到了 <code class="highlighter-rouge">B</code> 和 <code class="highlighter-rouge">F</code> ，再加上该未知区域像素的 <code class="highlighter-rouge">I</code> 就可以通过上面的「重要公式」求出 <code class="highlighter-rouge">α</code> 了。<br />
+最后判断这个 <code class="highlighter-rouge">α</code> 是否符合标准就好（什么标准啊，你话不要说一半啊！）。</p>
+
+<blockquote>
+  <p>In non-parametric methods, foreground and background color samples are obtained from known regions, whereby an objective function is used to find an optimal pair of foreground and background samples.</p>
+</blockquote>
+
+<h4 id="计算-α-的公式">计算 α 的公式</h4>
+
+<script type="math/tex; mode=display">\hat{\alpha} = \frac{(I-B)\cdot(F-B)}{(\parallel F-B \parallel_2)^2}</script>
+
+<p>该公式是由以上「重要公式」推导出来的，因为有多个颜色通道，所以这里的 <code class="highlighter-rouge">I</code>、<code class="highlighter-rouge">F</code>、<code class="highlighter-rouge">B</code> 均为向量。<br />
+其中 <code class="highlighter-rouge">‖*‖₂</code> 为<a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm">欧几里德范数</a>，在这里就和「模」差不多。<br />
+<br />
+推导过程也放在「思考」部分，这里和后面的内容有关联，也是我之前困惑的地方之一，所以想着重说明一下。<br /></p>
+
+<h4 id="流程图">流程图</h4>
+
+<p>介绍各个部分</p>
+
+<h2 id="不足之处">不足之处</h2>
+
+<p>mts：1.2.</p>
+
+<h2 id="改进方法">改进方法</h2>
+
+<p>1.2.
+2=&gt;新的问题=&gt;FDMO(我的改进)
+目标函数是什么</p>
+
+<h2 id="结论">结论</h2>
+
+<p>1.alpha误差小
+2.样本集少</p>
+
+<h2 id="思考">思考</h2>
+
+<p>好多云里雾里的，学会换个角度看问题，把其他领域的内容导通
+前景图，F+alpha mattes
+公式2的推导</p>
 
 
                 <hr>
@@ -192,10 +309,10 @@
 
                 <ul class="pager">
                     
-                    
-                    <li class="next">
-                        <a href="/2019/04/11/PDMS4IM/" data-toggle="tooltip" data-placement="top" title="PDMS for Image Matting">Next Post &rarr;</a>
+                    <li class="previous">
+                        <a href="/2019/04/09/Hello-World/" data-toggle="tooltip" data-placement="top" title="Hello World!">&larr; Previous Post</a>
                     </li>
+                    
                     
                 </ul>
 
