@@ -125,12 +125,12 @@
 
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
-<!-- <img src="/img/in-post/helloworld-20190409-bg.jpg" width="0" height="0"> -->
+<!-- <img src="/img/in-post/PDMS4IM-20190411/bg.jpg" width="0" height="0"> -->
 
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
-        background-image: url('/img/in-post/helloworld-20190409-bg.jpg')
+        background-image: url('/img/in-post/PDMS4IM-20190411/bg.jpg')
     }
 </style>
 <!-- MathJax support -->
@@ -172,7 +172,7 @@
 
 				<h2 id="首先">首先</h2>
 
-<p>终于完整地读完第一篇论文了！<br />一篇师兄写的关于抠图技术的论文《<a href="https://ieeexplore.ieee.org/document/8660585">Pixel-level Discrete Multiobjective Sampling for Image Matting</a>》。<br />我的知识实在是不够啊，只能稍作了解。<br />现记录如下，有理解错误和不足的地方会及时改正。:)</p>
+<p>终于完整地读完第一篇论文了！<br />师兄关于抠图的论文《<a href="https://ieeexplore.ieee.org/document/8660585">Pixel-level Discrete Multiobjective Sampling for Image Matting</a>》。<br />师兄超Nice的，被无知的我穷追不舍（师兄好可怜），但我还是只能稍作了解。<br />现记录如下，有理解错误和不足的地方会及时改正。:)</p>
 
 <h2 id="关于抠图">关于抠图</h2>
 
@@ -188,40 +188,46 @@ each pixel.</p>
 
 <script type="math/tex; mode=display">I_{i} = \alpha F_{i} + (1-\alpha) B_{i}</script>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>I 为该像素由我们肉眼观察到的颜色
-F 为该像素对应的前景的颜色
-B 为该像素对应的背景的颜色
-i 表示通道，就是R G B三个通道啦
-
-其实就是一个颜色叠加，用 α 和 1-α 来表示前景/背景的透明度
-</code></pre></div></div>
+<blockquote>
+  <p>I 为该像素由我们肉眼观察到的颜色 <br />
+F 为该像素对应的前景的颜色 <br />
+B 为该像素对应的背景的颜色 <br />
+i 表示通道，比如在RGB色域中就是R G B三个通道啦 <br />
+<br />
+其实就是一个颜色叠加，用 α 和 1-α 来表示前景/背景的透明度 <br /></p>
+</blockquote>
 
 <h3 id="抠图所需内容">抠图所需内容</h3>
 
+<p>所需内容有 2 张图片：</p>
 <ol>
   <li>一张待抠图片（当然）</li>
-  <li>一张大致确定前景/背景位置的图片</li>
+  <li>一张大致确定前景/背景位置的图片（Trimap or Scribble）</li>
 </ol>
 
-<p>对于第 2 个，可能会比较陌生，但看到下图就很容易理解了。<br />
-其实就是一个用来划分区域的「<strong>三色图</strong>」。<br />
-「<strong>黑色区域</strong>」表示确定是「<strong>背景</strong>」的区域；<br />
-「<strong>白色区域</strong>」表示确定是「<strong>前景</strong>」的区域；<br />
-「<strong>灰色区域</strong>」表示「<strong>不确定</strong>」的区域。<br />
-<strong>而抠图算法的最终目的，就是消除这个不确定的区域。</strong><br />
-<br />
-有「<strong>trimap</strong>」和「<strong>scribble</strong>」两种，trimap 比较精准，而 scribble 就是用户手画的随便指定了一下前景和背景区域。<br />
+<h4 id="trimap--scribble">Trimap &amp; Scribble</h4>
+
+<p>对于第 2 个，可能会比较陌生，但看下图就好理解了。其实就是一个用来划分区域的「<strong>三色图</strong>」。<br />
+「<strong>黑色区域</strong>」表示确定为「<strong>背景</strong>」的区域；<br />
+「<strong>白色区域</strong>」表示确定为「<strong>前景</strong>」的区域；<br />
+「<strong>灰色区域</strong>」表示「<strong>不确定</strong>」的区域。<br /></p>
+
+<blockquote>
+  <p>而抠图算法的最终目的，就是消除这个不确定的区域。</p>
+</blockquote>
+
+<p>有「<strong>trimap</strong>」和「<strong>scribble</strong>」两种，trimap 比较精准，而 scribble 就是用户手画的随便指定了一下前景和背景区域。<br />
 当然后者更便于用户使用，但确定的区域少了，难度也随之增加了。<br /></p>
 
-<p>（配图，原图+trimap+scribble）</p>
+<p><img src="/img/in-post/PDMS4IM-20190411/01.png" alt="img" /></p>
 
 <h3 id="抠图的产物">抠图的产物</h3>
 
-<s>这还用说吗！当然是抠出来的图啊！</s>
-<p><strong>注意了（敲黑板）</strong>！这里可能会有人和我之前一样进入一个误区，那就是抠图的最终产物是一张前景图。<br />
+<p><del>这还用说吗！当然是抠出来的图啊！</del><br />
+<strong>注意了（敲黑板）</strong>！这里可能会有人和我一样进入一个误区，认为抠图的最终产物是一张前景图。<br />
 其实不是的，抠图的产物是一个叫做「<strong>Alpha mattes</strong>」的东西，如下图所示。<br /></p>
 
-<p>（配图，Alpha mattes）</p>
+<p><img src="/img/in-post/PDMS4IM-20190411/02.png" alt="img" /></p>
 
 <p>就是一个蒙版，每个像素的灰度值代表透明度。<br />
 「<strong>黑色</strong>」代表该像素透明度为 <code class="highlighter-rouge">0</code>；<br />
@@ -229,13 +235,17 @@ i 表示通道，就是R G B三个通道啦
 「<strong>灰色</strong>」按照灰度确定该像素的透明度。<br /></p>
 
 <p>有了这个 Alpha mattes 我们就已经把前景给提取出来了。<br /></p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>至于所说的前景图，师兄说那是「图像合成」的事了。
-而且，如果用于图像合成的话，不仅仅需要生成一个 Alpha mattes 还需要一个「F」，即一个前景色的图！
 
-为什么呢？我放在最后「思考」中介绍吧，一直扩展还下不下课了！喂喂！
-</code></pre></div></div>
+<blockquote>
+  <p>至于所说的前景图，师兄说那是「图像合成」的事了。<br />
+而且，如果用于图像合成的话，不仅仅需要生成一个 Alpha mattes 还需要一个「F」，即一个前景色的图！<br />
+<br />
+为什么呢？我放在最后「思考」中介绍吧，一直扩展还下不下课了！喂喂！<br /></p>
+</blockquote>
 
 <h3 id="现有方法">现有方法</h3>
+
+<p>现主要抠图算法都基于以下 3 种方法：</p>
 
 <ol>
   <li>基于采样算法 Sampling-Based</li>
@@ -243,7 +253,8 @@ i 表示通道，就是R G B三个通道啦
   <li>以上两者混合 Hybrid Methods</li>
 </ol>
 
-<p>该论文的做法是基于采样的，所以比较详细说明了采样，其他两种我的脑子告诉我它不会，等我喂饱它之后再来补充。</p>
+<p>该论文的做法是基于采样的，所以比较详细说明了采样。<br />
+其他两种我的脑子告诉我它不会，等我喂饱它之后再来补充。</p>
 
 <h3 id="基于采样方法">基于采样方法</h3>
 
@@ -259,7 +270,7 @@ i 表示通道，就是R G B三个通道啦
 
 <h4 id="non-parametric">Non-Parametric</h4>
 
-<p>这个方法就是说呢，从之前的「Trimap」或「Scribble」里得到了已知的「前景区域」和「背景区域」。<br />
+<p>这方法就是说呢，从之前的「Trimap」或「Scribble」里得到已知的「前景区域」和「背景区域」。<br />
 对于某一未知区域的像素点，从以上两个确定区域中选取一对像素作为样本，即得到了 <code class="highlighter-rouge">B</code> 和 <code class="highlighter-rouge">F</code> ，再加上该未知区域像素的 <code class="highlighter-rouge">I</code> 就可以通过上面的「重要公式」求出 <code class="highlighter-rouge">α</code> 了。<br />
 最后判断这个 <code class="highlighter-rouge">α</code> 是否符合标准就好（什么标准啊，你话不要说一半啊！）。</p>
 
@@ -271,16 +282,34 @@ i 表示通道，就是R G B三个通道啦
 
 <script type="math/tex; mode=display">\hat{\alpha} = \frac{(I-B)\cdot(F-B)}{(\parallel F-B \parallel_2)^2}</script>
 
-<p>该公式是由以上「重要公式」推导出来的，因为有多个颜色通道，所以这里的 <code class="highlighter-rouge">I</code>、<code class="highlighter-rouge">F</code>、<code class="highlighter-rouge">B</code> 均为向量。<br />
+<p>该公式是由以上「重要公式」推导出来的，有多个颜色通道，所以这里的 <code class="highlighter-rouge">I</code>、<code class="highlighter-rouge">F</code>、<code class="highlighter-rouge">B</code> 均为向量。<br />
 其中 <code class="highlighter-rouge">‖*‖₂</code> 为<a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm">欧几里德范数</a>，在这里就和「模」差不多。<br />
 <br />
-推导过程也放在「思考」部分，这里和后面的内容有关联，也是我之前困惑的地方之一，所以想着重说明一下。<br /></p>
+推导过程在「思考」部分，这里和后面的内容有关联，是我之前困惑的地方，所以想着重说明一下。<br /></p>
 
-<h4 id="流程图">流程图</h4>
+<h4 id="流程">流程</h4>
 
-<p>介绍各个部分</p>
+<p><img src="/img/in-post/PDMS4IM-20190411/03.jpg" alt="img" /></p>
 
-<h2 id="不足之处">不足之处</h2>
+<h5 id="pre-processing">Pre-Processing</h5>
+<p>预处理阶段，主要是通过一些算法来缩小「Trimap」或「Scribble」中「未知区域」的空间，减少之后的计算量。比如使用一些颜色相近和空间相近原则，来扩张已确定的「前景区域」和「背景区域」。</p>
+
+<h5 id="color-sampling">Color Sampling</h5>
+<p>前景色和背景色的取样阶段。第二个公式中的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 并不是大海捞针，每一个都测试一遍的。而是从一堆可行解里面选择，这堆可行解就是通过「Color Sampling」过程筛选出来的。<br /></p>
+<blockquote>
+  <p>这个阶段就是本文重点优化的阶段。</p>
+</blockquote>
+
+<h5 id="sample-pair-selection">Sample Pair Selection</h5>
+<p>从上一个步骤中根据目标函数选取最佳的样本，也就是公式中的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 了。</p>
+
+<h5 id="solving-alpha">Solving Alpha</h5>
+<p>将上一步得到的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 带入第二个公式求出 <code class="highlighter-rouge">α</code> ，从而得到「Alpha mattes」。</p>
+
+<h5 id="post-processing">Post-Processing</h5>
+<p>后处理阶段，通过一些算法使得「Alpha mattes」的图像更加平滑。</p>
+
+<h2 id="现有方法的不足之处">现有方法的不足之处</h2>
 
 <p>mts：1.2.</p>
 

@@ -5,15 +5,15 @@
     <description>THE MOI'S WORLD</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 11 Apr 2019 08:19:28 +0000</pubDate>
-    <lastBuildDate>Thu, 11 Apr 2019 08:19:28 +0000</lastBuildDate>
+    <pubDate>Thu, 11 Apr 2019 14:50:45 +0000</pubDate>
+    <lastBuildDate>Thu, 11 Apr 2019 14:50:45 +0000</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
         <title>PDMS for Image Matting</title>
         <description>&lt;h2 id=&quot;首先&quot;&gt;首先&lt;/h2&gt;
 
-&lt;p&gt;终于完整地读完第一篇论文了！&lt;br /&gt;一篇师兄写的关于抠图技术的论文《&lt;a href=&quot;https://ieeexplore.ieee.org/document/8660585&quot;&gt;Pixel-level Discrete Multiobjective Sampling for Image Matting&lt;/a&gt;》。&lt;br /&gt;我的知识实在是不够啊，只能稍作了解。&lt;br /&gt;现记录如下，有理解错误和不足的地方会及时改正。:)&lt;/p&gt;
+&lt;p&gt;终于完整地读完第一篇论文了！&lt;br /&gt;师兄关于抠图的论文《&lt;a href=&quot;https://ieeexplore.ieee.org/document/8660585&quot;&gt;Pixel-level Discrete Multiobjective Sampling for Image Matting&lt;/a&gt;》。&lt;br /&gt;师兄超Nice的，被无知的我穷追不舍（师兄好可怜），但我还是只能稍作了解。&lt;br /&gt;现记录如下，有理解错误和不足的地方会及时改正。:)&lt;/p&gt;
 
 &lt;h2 id=&quot;关于抠图&quot;&gt;关于抠图&lt;/h2&gt;
 
@@ -29,40 +29,46 @@ each pixel.&lt;/p&gt;
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;I_{i} = \alpha F_{i} + (1-\alpha) B_{i}&lt;/script&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;I 为该像素由我们肉眼观察到的颜色
-F 为该像素对应的前景的颜色
-B 为该像素对应的背景的颜色
-i 表示通道，就是R G B三个通道啦
-
-其实就是一个颜色叠加，用 α 和 1-α 来表示前景/背景的透明度
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;I 为该像素由我们肉眼观察到的颜色 &lt;br /&gt;
+F 为该像素对应的前景的颜色 &lt;br /&gt;
+B 为该像素对应的背景的颜色 &lt;br /&gt;
+i 表示通道，比如在RGB色域中就是R G B三个通道啦 &lt;br /&gt;
+&lt;br /&gt;
+其实就是一个颜色叠加，用 α 和 1-α 来表示前景/背景的透明度 &lt;br /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 
 &lt;h3 id=&quot;抠图所需内容&quot;&gt;抠图所需内容&lt;/h3&gt;
 
+&lt;p&gt;所需内容有 2 张图片：&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;一张待抠图片（当然）&lt;/li&gt;
-  &lt;li&gt;一张大致确定前景/背景位置的图片&lt;/li&gt;
+  &lt;li&gt;一张大致确定前景/背景位置的图片（Trimap or Scribble）&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;对于第 2 个，可能会比较陌生，但看到下图就很容易理解了。&lt;br /&gt;
-其实就是一个用来划分区域的「&lt;strong&gt;三色图&lt;/strong&gt;」。&lt;br /&gt;
-「&lt;strong&gt;黑色区域&lt;/strong&gt;」表示确定是「&lt;strong&gt;背景&lt;/strong&gt;」的区域；&lt;br /&gt;
-「&lt;strong&gt;白色区域&lt;/strong&gt;」表示确定是「&lt;strong&gt;前景&lt;/strong&gt;」的区域；&lt;br /&gt;
-「&lt;strong&gt;灰色区域&lt;/strong&gt;」表示「&lt;strong&gt;不确定&lt;/strong&gt;」的区域。&lt;br /&gt;
-&lt;strong&gt;而抠图算法的最终目的，就是消除这个不确定的区域。&lt;/strong&gt;&lt;br /&gt;
-&lt;br /&gt;
-有「&lt;strong&gt;trimap&lt;/strong&gt;」和「&lt;strong&gt;scribble&lt;/strong&gt;」两种，trimap 比较精准，而 scribble 就是用户手画的随便指定了一下前景和背景区域。&lt;br /&gt;
+&lt;h4 id=&quot;trimap--scribble&quot;&gt;Trimap &amp;amp; Scribble&lt;/h4&gt;
+
+&lt;p&gt;对于第 2 个，可能会比较陌生，但看下图就好理解了。其实就是一个用来划分区域的「&lt;strong&gt;三色图&lt;/strong&gt;」。&lt;br /&gt;
+「&lt;strong&gt;黑色区域&lt;/strong&gt;」表示确定为「&lt;strong&gt;背景&lt;/strong&gt;」的区域；&lt;br /&gt;
+「&lt;strong&gt;白色区域&lt;/strong&gt;」表示确定为「&lt;strong&gt;前景&lt;/strong&gt;」的区域；&lt;br /&gt;
+「&lt;strong&gt;灰色区域&lt;/strong&gt;」表示「&lt;strong&gt;不确定&lt;/strong&gt;」的区域。&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;而抠图算法的最终目的，就是消除这个不确定的区域。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;有「&lt;strong&gt;trimap&lt;/strong&gt;」和「&lt;strong&gt;scribble&lt;/strong&gt;」两种，trimap 比较精准，而 scribble 就是用户手画的随便指定了一下前景和背景区域。&lt;br /&gt;
 当然后者更便于用户使用，但确定的区域少了，难度也随之增加了。&lt;br /&gt;&lt;/p&gt;
 
-&lt;p&gt;（配图，原图+trimap+scribble）&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/PDMS4IM-20190411/01.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;抠图的产物&quot;&gt;抠图的产物&lt;/h3&gt;
 
-&lt;s&gt;这还用说吗！当然是抠出来的图啊！&lt;/s&gt;
-&lt;p&gt;&lt;strong&gt;注意了（敲黑板）&lt;/strong&gt;！这里可能会有人和我之前一样进入一个误区，那就是抠图的最终产物是一张前景图。&lt;br /&gt;
+&lt;p&gt;&lt;del&gt;这还用说吗！当然是抠出来的图啊！&lt;/del&gt;&lt;br /&gt;
+&lt;strong&gt;注意了（敲黑板）&lt;/strong&gt;！这里可能会有人和我一样进入一个误区，认为抠图的最终产物是一张前景图。&lt;br /&gt;
 其实不是的，抠图的产物是一个叫做「&lt;strong&gt;Alpha mattes&lt;/strong&gt;」的东西，如下图所示。&lt;br /&gt;&lt;/p&gt;
 
-&lt;p&gt;（配图，Alpha mattes）&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/PDMS4IM-20190411/02.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;就是一个蒙版，每个像素的灰度值代表透明度。&lt;br /&gt;
 「&lt;strong&gt;黑色&lt;/strong&gt;」代表该像素透明度为 &lt;code class=&quot;highlighter-rouge&quot;&gt;0&lt;/code&gt;；&lt;br /&gt;
@@ -70,13 +76,17 @@ i 表示通道，就是R G B三个通道啦
 「&lt;strong&gt;灰色&lt;/strong&gt;」按照灰度确定该像素的透明度。&lt;br /&gt;&lt;/p&gt;
 
 &lt;p&gt;有了这个 Alpha mattes 我们就已经把前景给提取出来了。&lt;br /&gt;&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;至于所说的前景图，师兄说那是「图像合成」的事了。
-而且，如果用于图像合成的话，不仅仅需要生成一个 Alpha mattes 还需要一个「F」，即一个前景色的图！
 
-为什么呢？我放在最后「思考」中介绍吧，一直扩展还下不下课了！喂喂！
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;至于所说的前景图，师兄说那是「图像合成」的事了。&lt;br /&gt;
+而且，如果用于图像合成的话，不仅仅需要生成一个 Alpha mattes 还需要一个「F」，即一个前景色的图！&lt;br /&gt;
+&lt;br /&gt;
+为什么呢？我放在最后「思考」中介绍吧，一直扩展还下不下课了！喂喂！&lt;br /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 
 &lt;h3 id=&quot;现有方法&quot;&gt;现有方法&lt;/h3&gt;
+
+&lt;p&gt;现主要抠图算法都基于以下 3 种方法：&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;基于采样算法 Sampling-Based&lt;/li&gt;
@@ -84,7 +94,8 @@ i 表示通道，就是R G B三个通道啦
   &lt;li&gt;以上两者混合 Hybrid Methods&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;该论文的做法是基于采样的，所以比较详细说明了采样，其他两种我的脑子告诉我它不会，等我喂饱它之后再来补充。&lt;/p&gt;
+&lt;p&gt;该论文的做法是基于采样的，所以比较详细说明了采样。&lt;br /&gt;
+其他两种我的脑子告诉我它不会，等我喂饱它之后再来补充。&lt;/p&gt;
 
 &lt;h3 id=&quot;基于采样方法&quot;&gt;基于采样方法&lt;/h3&gt;
 
@@ -100,7 +111,7 @@ i 表示通道，就是R G B三个通道啦
 
 &lt;h4 id=&quot;non-parametric&quot;&gt;Non-Parametric&lt;/h4&gt;
 
-&lt;p&gt;这个方法就是说呢，从之前的「Trimap」或「Scribble」里得到了已知的「前景区域」和「背景区域」。&lt;br /&gt;
+&lt;p&gt;这方法就是说呢，从之前的「Trimap」或「Scribble」里得到已知的「前景区域」和「背景区域」。&lt;br /&gt;
 对于某一未知区域的像素点，从以上两个确定区域中选取一对像素作为样本，即得到了 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; ，再加上该未知区域像素的 &lt;code class=&quot;highlighter-rouge&quot;&gt;I&lt;/code&gt; 就可以通过上面的「重要公式」求出 &lt;code class=&quot;highlighter-rouge&quot;&gt;α&lt;/code&gt; 了。&lt;br /&gt;
 最后判断这个 &lt;code class=&quot;highlighter-rouge&quot;&gt;α&lt;/code&gt; 是否符合标准就好（什么标准啊，你话不要说一半啊！）。&lt;/p&gt;
 
@@ -112,16 +123,34 @@ i 表示通道，就是R G B三个通道啦
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;\hat{\alpha} = \frac{(I-B)\cdot(F-B)}{(\parallel F-B \parallel_2)^2}&lt;/script&gt;
 
-&lt;p&gt;该公式是由以上「重要公式」推导出来的，因为有多个颜色通道，所以这里的 &lt;code class=&quot;highlighter-rouge&quot;&gt;I&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 均为向量。&lt;br /&gt;
+&lt;p&gt;该公式是由以上「重要公式」推导出来的，有多个颜色通道，所以这里的 &lt;code class=&quot;highlighter-rouge&quot;&gt;I&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 均为向量。&lt;br /&gt;
 其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;‖*‖₂&lt;/code&gt; 为&lt;a href=&quot;https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm&quot;&gt;欧几里德范数&lt;/a&gt;，在这里就和「模」差不多。&lt;br /&gt;
 &lt;br /&gt;
-推导过程也放在「思考」部分，这里和后面的内容有关联，也是我之前困惑的地方之一，所以想着重说明一下。&lt;br /&gt;&lt;/p&gt;
+推导过程在「思考」部分，这里和后面的内容有关联，是我之前困惑的地方，所以想着重说明一下。&lt;br /&gt;&lt;/p&gt;
 
-&lt;h4 id=&quot;流程图&quot;&gt;流程图&lt;/h4&gt;
+&lt;h4 id=&quot;流程&quot;&gt;流程&lt;/h4&gt;
 
-&lt;p&gt;介绍各个部分&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/PDMS4IM-20190411/03.jpg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;不足之处&quot;&gt;不足之处&lt;/h2&gt;
+&lt;h5 id=&quot;pre-processing&quot;&gt;Pre-Processing&lt;/h5&gt;
+&lt;p&gt;预处理阶段，主要是通过一些算法来缩小「Trimap」或「Scribble」中「未知区域」的空间，减少之后的计算量。比如使用一些颜色相近和空间相近原则，来扩张已确定的「前景区域」和「背景区域」。&lt;/p&gt;
+
+&lt;h5 id=&quot;color-sampling&quot;&gt;Color Sampling&lt;/h5&gt;
+&lt;p&gt;前景色和背景色的取样阶段。第二个公式中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 并不是大海捞针，每一个都测试一遍的。而是从一堆可行解里面选择，这堆可行解就是通过「Color Sampling」过程筛选出来的。&lt;br /&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;这个阶段就是本文重点优化的阶段。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h5 id=&quot;sample-pair-selection&quot;&gt;Sample Pair Selection&lt;/h5&gt;
+&lt;p&gt;从上一个步骤中根据目标函数选取最佳的样本，也就是公式中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 了。&lt;/p&gt;
+
+&lt;h5 id=&quot;solving-alpha&quot;&gt;Solving Alpha&lt;/h5&gt;
+&lt;p&gt;将上一步得到的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 带入第二个公式求出 &lt;code class=&quot;highlighter-rouge&quot;&gt;α&lt;/code&gt; ，从而得到「Alpha mattes」。&lt;/p&gt;
+
+&lt;h5 id=&quot;post-processing&quot;&gt;Post-Processing&lt;/h5&gt;
+&lt;p&gt;后处理阶段，通过一些算法使得「Alpha mattes」的图像更加平滑。&lt;/p&gt;
+
+&lt;h2 id=&quot;现有方法的不足之处&quot;&gt;现有方法的不足之处&lt;/h2&gt;
 
 &lt;p&gt;mts：1.2.&lt;/p&gt;
 
