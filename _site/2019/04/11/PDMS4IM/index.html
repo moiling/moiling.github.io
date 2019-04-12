@@ -174,6 +174,7 @@
 
 <p>终于完整地读完第一篇论文了！<br />师兄关于抠图的论文《<a href="https://ieeexplore.ieee.org/document/8660585">Pixel-level Discrete Multiobjective Sampling for Image Matting</a>》。<br />师兄超Nice的，被无知的我穷追不舍（师兄好可怜），但我还是只能稍作了解。<br />现记录如下，有理解错误和不足的地方会及时改正。:)</p>
 
+<hr />
 <h2 id="关于抠图">关于抠图</h2>
 
 <p>「<strong>抠图</strong>」的主要任务很简单，就是从一张图片中，把你需要的物体(前景)从图像中提取出来。其操作是通过评估每个像素点的透明度来完成的。<br /></p>
@@ -182,6 +183,7 @@
 each pixel.</p>
 </blockquote>
 
+<hr />
 <h2 id="抠图方法">抠图方法</h2>
 
 <h3 id="一个重要公式">一个重要公式</h3>
@@ -291,44 +293,180 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 <br />
 
 <p><img src="/img/in-post/PDMS4IM-20190411/03.jpg" alt="img" /></p>
 
-<h5 id="pre-processing">Pre-Processing</h5>
+<p><strong>1. Pre-Processing</strong></p>
+
 <p>预处理阶段，主要是通过一些算法来缩小「Trimap」或「Scribble」中「未知区域」的空间，减少之后的计算量。比如使用一些颜色相近和空间相近原则，来扩张已确定的「前景区域」和「背景区域」。</p>
 
-<h5 id="color-sampling">Color Sampling</h5>
+<p><strong>2. Color Sampling</strong></p>
+
 <p>前景色和背景色的取样阶段。第二个公式中的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 并不是大海捞针，每一个都测试一遍的。而是从一堆可行解里面选择，这堆可行解就是通过「Color Sampling」过程筛选出来的。<br /></p>
 <blockquote>
   <p>这个阶段就是本文重点优化的阶段。</p>
 </blockquote>
 
-<h5 id="sample-pair-selection">Sample Pair Selection</h5>
+<p><strong>3. Sample Pair Selection</strong></p>
+
 <p>从上一个步骤中根据目标函数选取最佳的样本，也就是公式中的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 了。</p>
 
-<h5 id="solving-alpha">Solving Alpha</h5>
+<p><strong>4. Solving Alpha</strong></p>
+
 <p>将上一步得到的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 带入第二个公式求出 <code class="highlighter-rouge">α</code> ，从而得到「Alpha mattes」。</p>
 
-<h5 id="post-processing">Post-Processing</h5>
+<p><strong>5. Post-Processing</strong></p>
+
 <p>后处理阶段，通过一些算法使得「Alpha mattes」的图像更加平滑。</p>
 
+<hr />
 <h2 id="现有方法的不足之处">现有方法的不足之处</h2>
 
-<p>mts：1.2.</p>
+<p>不足之处主要在于「Color Sampling」阶段。如上面所说抠图主要运用「第二个公式」的 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 求出 <code class="highlighter-rouge">α</code> 进而得到最终产物「Alpha mattes」，<code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 都要从候选样本中选取，所以该阶段是整个抠图过程的关键。</p>
 
+<h3 id="color-sampling-的困难点">Color Sampling 的困难点</h3>
+
+<p>「Color Sampling」阶段的困难主要在于两点，「<strong>取样标准选取</strong>」和「<strong>取样集合太大</strong>」的问题。</p>
+
+<h3 id="已有的解决方法">已有的解决方法</h3>
+
+<p>对于「取样标准选取」的解决方法，最早提出的是一种「基于距离的取样方法」，即样本应该离未知点越近越好，这样的话选取的样本一般都集中在未知点到已知区域的边界处。但是很遗憾，通常正确的样本并不一定离未知点很近，所以需要多种标准来选择，比如「<strong>距离</strong>」、「<strong>颜色</strong>」、「<strong>纹理</strong>」等。所以提出了「<strong>基于多种标准的取样方法</strong>」<br /></p>
+
+<p>对于「取样集合太大」的解决方法，通常采用叫做「<a href="https://arxiv.org/abs/1612.01601">Superpixels</a>」的方法。简单来说就是把很多颜色相近的像素点聚集起来成为一个「超像素」，这个「超像素」中只有一个颜色，就是之前聚集的像素点的「<strong>颜色均值</strong>」。这样就大大减少了取样集合的大小。</p>
+
+<h3 id="不足之处">不足之处</h3>
+
+<p>对于「基于多种标准的取样方法」来说，主要的问题在于「<strong>多种标准之间的冲突问题</strong>」，如一个正确的样本，它的颜色和未知点很近，但是距离却和未知点很远，这样标准之间就产生了冲突，很可能将正确的点给抛弃掉。从而产生「<strong>丢失正确样本 Missing True Samples（MTS）</strong>」的问题。</p>
+<blockquote>
+  <p>For example, if true color samples sembled to the color of an unknown pixel are far from the unknown pixel, the spatial closeness criterion and color criterion will be in conflict. The true samples may not be collected by existing methods in this case, because the dissatisfaction of spatial closeness criterion may result in uncompetitive scores for the true samples in the comparison to that for the pixels closed to unknown pixels.</p>
+</blockquote>
+
+<p>对于「Superpixels」来说，也一样的，可能正确的样本颜色被均值化，从而产生「MTS」问题。</p>
+<blockquote>
+  <p>The mean color of a superpixel cannot represent the color outliers in the superpixel which may be the true color sample for alpha estimation.</p>
+</blockquote>
+
+<hr />
 <h2 id="改进方法">改进方法</h2>
 
-<p>1.2.
-2=&gt;新的问题=&gt;FDMO(我的改进)
-目标函数是什么</p>
+<p>该论文提出的「<strong>Pixel-level Discrete Multiobjective Sampling（PDMS）</strong>」算法主要就是为了避免「MTS」问题。<br /></p>
 
-<h2 id="结论">结论</h2>
+<h3 id="多目标优化">多目标优化</h3>
 
-<p>1.alpha误差小
-2.样本集少</p>
+<p>对于「多种标准之间的冲突问题」，将其看做「<strong>多目标优化问题 Multiobjective Optimization Problem (MOP)</strong>」，从而解决标准之间的冲突。目标函数如下：</p>
 
-<h2 id="思考">思考</h2>
+<script type="math/tex; mode=display">g_{1}(x) = \parallel C_{x} - C_{z} \parallel_{2}</script>
 
-<p>好多云里雾里的，学会换个角度看问题，把其他领域的内容导通
-前景图，F+alpha mattes
-公式2的推导</p>
+<script type="math/tex; mode=display">g_{2}(x) = \parallel S_{x} - S_{z} \parallel_{2}</script>
+
+<script type="math/tex; mode=display">g_{3}(x) = \parallel T_{x} - T_{z} \parallel_{2}</script>
+
+<blockquote>
+  <p>其中\(g_{1}(x)\)、\(g_{2}(x)\)、\(g_{3}(x)\)为三个目标函数<br />
+\(x\)为已知区域中的某个点，\(z\)为当前计算的未知区域点<br />
+\(C\)为颜色向量、\(S\)为空间坐标向量、\(T\)为纹理特征向量</p>
+</blockquote>
+
+<p>同时使所有目标函数最小化</p>
+
+<script type="math/tex; mode=display">\min g_{1}(x),\min g_{2}(x),\ldots,\min g_{n}(x)</script>
+
+<p>注意这里只是一个样本点的选取，在「Color Sampling」过程中是要选取 <code class="highlighter-rouge">F</code> 和 <code class="highlighter-rouge">B</code> 两个样本点的，所以该问题其实是<strong>两个</strong>「MOP」问题。</p>
+
+<h3 id="pixel-level">Pixel-Level</h3>
+
+<p>对于「Superpixels」的问题，想法很简单，既然均值化会丢失真实样本，那不均值化好了，直接从所有像素中取样，即「Pixel-Level」。但「取样集合太大」的问题不又回来了吗，进入死循环中。<br /></p>
+
+<p>这个时候就需要跳出固定思维了，本文通过设计了一个新的算法「<strong>Fast Discrete Multiobjective Optimization（FDMO）</strong>」从而避免了「取样集合太大」导致的「计算量过大问题」。</p>
+
+<h4 id="fdmo">FDMO</h4>
+
+<p>「FDMO」的主要优化依据在于，经过「MOP」筛选之后，候选样本集所在的「Pareto Optimal Solution」很小很小。在 <code class="highlighter-rouge">168,409</code> 个可行解中最后只有 <code class="highlighter-rouge">11</code> 在「Pareto Set」中。</p>
+<blockquote>
+  <p>For the foreground sampling MOP defined in Subsection III-A2, the universal set contains 168,409 feasible solutions while only 11 solutions are Pareto optimal in this case.</p>
+</blockquote>
+
+<p>在这样的情况下，算法的核心思想就是<strong>在每一趟遍历中，把所有该剔除（被支配）的样本给剔除掉</strong>。这样如果最终「Pareto Optimal Solution」的大小为 <code class="highlighter-rouge">k</code>，就只需要在 <code class="highlighter-rouge">k</code> 趟遍历中完成算法。设取样集合总大小为 <code class="highlighter-rouge">n</code> 则算法的时间复杂度为 <code class="highlighter-rouge">O(kn)</code> 。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/*
+ *  Input: all possible values C.
+ *  Output: C, i (the first i − 1 elements in array C are Pareto optimal)
+ */
+i ← 1
+j ← the number of elements in array C
+while i ≤ j do 
+    cmp ← i + 1
+    while cmp ≤ j do
+        if C[i] dominate C[cmp] then
+            swap(C[cmp], C[j])
+            j ← j − 1
+        else if C[cmp] dominate C[i] then
+            swap(C[i], C[cmp])
+            swap(C[cmp], C[j])
+            j ← j − 1
+            cmp ← i + 1
+        else
+            cmp ← cmp + 1
+        end if
+    end while
+    i ← i + 1
+end while
+return C, i
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"> </th>
+      <th style="text-align: center">Best</th>
+      <th style="text-align: center">Worst</th>
+      <th style="text-align: center">Average</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">时间复杂度</td>
+      <td style="text-align: center">\(O(n)\)</td>
+      <td style="text-align: center">\(O(n^2)\)</td>
+      <td style="text-align: center">\(O(kn)\)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">空间复杂度</td>
+      <td style="text-align: center">\(O(n)\)</td>
+      <td style="text-align: center">\(O(n)\)</td>
+      <td style="text-align: center">\(O(n)\)</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+<h2 id="选取样本对的方法">选取样本对的方法</h2>
+
+<p>也就是「Sample Pair Selection」阶段，在上一阶段中得到的候选样本里选取最佳样本。<br />
+其评价方程如下：</p>
+
+<script type="math/tex; mode=display">O_{z}(x_{F},x_{B}) = O_z^{(c)}(x_{F},x_{B})\times O_z^{(s)}(x_{F},x_{B})</script>
+
+<script type="math/tex; mode=display">O_z^{(c)}(x_{F},x_{B})=\exp(-\parallel C_{z}-(\hat{\alpha_{z}}C_{x_{F}}+(1-\hat{\alpha_{z}})C_{x_{B}}))\parallel_{2})</script>
+
+<script type="math/tex; mode=display">O_z^{(s)}(x_{F},x_{B})=\exp(\frac{-\parallel S_{z}-S_{x_{F}}\parallel_{2}}{\frac{1}{|\Omega_{F}|}\sum_{x_{i}\in\Omega_{F}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})\times\exp(\frac{-\parallel S_{z}-S_{x_{B}}\parallel_{2}}{\frac{1}{|\Omega_{B}|}\sum_{x_{i}\in\Omega_{B}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})</script>
+
+<blockquote>
+  <p>是不是头都要炸了？哈哈哈<br />
+静下心来，其实很简单<br />
+第二个公式的意思就是用算出来的 alpha、B 和 F<br />
+反过来求 I‘ ，看看这个 I’ 的颜色有多大变化，变化越小越好<br />
+第三个公式的意思就是 F 和 B 应该是所有样本里距离最近的<br />
+第一个公式就是这两者的叉乘，两者一起评估<br /></p>
+</blockquote>
+
+<hr />
+<h2 id="结论--思考">结论 &amp; 思考</h2>
+
+<p>结论就是该算法最终在「<strong>很少的候选样本</strong>」中达到了「<strong>很小的 Alpha 误差</strong>」。<br />
+但是速度方面不尽人意，空间方面耗费很小。<br /></p>
+
+<p>思考主要想说一下自己之前对「最终产物」的误解，以及「前景图」生成过程。<br />
+还有「第二个公式」的推导过程（因为论文中少了一个平方，困扰了我很久），以及选择样本对时「目标函数」的作用。
+最后是「FDMO」算法在我想的一个特殊情况下时间复杂度达到了\(O(2^n)\)，以及我的改进方法。<br />
+由于篇幅太长了，我自己都不愿看了，这些内容就放到下一篇吧（让我偷个懒）。</p>
 
 
                 <hr>
@@ -352,6 +490,23 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 <br />
 
             </div>
 
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+        
     <!-- Sidebar Container -->
             <div class="
                 col-lg-8 col-lg-offset-2
@@ -573,6 +728,52 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 <br />
 
 
 <!-- Baidu Tongji -->
+
+
+<!-- one-page-nav-js, Doc:https://github.com/davist11/jQuery-One-Page-Nav -->
+
+
+<!-- create the directory and set the animatescroll. failed to adjust the scroll event in hux-blog.js so the scroll animation looks odd. -->
+<script type="text/javascript">
+    function createCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+    createCatalog(".catalog-body");
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+</script>
+
+<!-- one-page-nav.js -->
+<script>
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "easeOutExpo",
+            filter: "",
+            scrollSpeed: 800,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
 
 
 

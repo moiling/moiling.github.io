@@ -5,8 +5,8 @@
     <description>THE MOI'S WORLD</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 11 Apr 2019 14:50:45 +0000</pubDate>
-    <lastBuildDate>Thu, 11 Apr 2019 14:50:45 +0000</lastBuildDate>
+    <pubDate>Fri, 12 Apr 2019 07:42:11 +0000</pubDate>
+    <lastBuildDate>Fri, 12 Apr 2019 07:42:11 +0000</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
@@ -15,6 +15,7 @@
 
 &lt;p&gt;终于完整地读完第一篇论文了！&lt;br /&gt;师兄关于抠图的论文《&lt;a href=&quot;https://ieeexplore.ieee.org/document/8660585&quot;&gt;Pixel-level Discrete Multiobjective Sampling for Image Matting&lt;/a&gt;》。&lt;br /&gt;师兄超Nice的，被无知的我穷追不舍（师兄好可怜），但我还是只能稍作了解。&lt;br /&gt;现记录如下，有理解错误和不足的地方会及时改正。:)&lt;/p&gt;
 
+&lt;hr /&gt;
 &lt;h2 id=&quot;关于抠图&quot;&gt;关于抠图&lt;/h2&gt;
 
 &lt;p&gt;「&lt;strong&gt;抠图&lt;/strong&gt;」的主要任务很简单，就是从一张图片中，把你需要的物体(前景)从图像中提取出来。其操作是通过评估每个像素点的透明度来完成的。&lt;br /&gt;&lt;/p&gt;
@@ -23,6 +24,7 @@
 each pixel.&lt;/p&gt;
 &lt;/blockquote&gt;
 
+&lt;hr /&gt;
 &lt;h2 id=&quot;抠图方法&quot;&gt;抠图方法&lt;/h2&gt;
 
 &lt;h3 id=&quot;一个重要公式&quot;&gt;一个重要公式&lt;/h3&gt;
@@ -132,44 +134,180 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 &lt;br /&gt;
 
 &lt;p&gt;&lt;img src=&quot;/img/in-post/PDMS4IM-20190411/03.jpg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
 
-&lt;h5 id=&quot;pre-processing&quot;&gt;Pre-Processing&lt;/h5&gt;
+&lt;p&gt;&lt;strong&gt;1. Pre-Processing&lt;/strong&gt;&lt;/p&gt;
+
 &lt;p&gt;预处理阶段，主要是通过一些算法来缩小「Trimap」或「Scribble」中「未知区域」的空间，减少之后的计算量。比如使用一些颜色相近和空间相近原则，来扩张已确定的「前景区域」和「背景区域」。&lt;/p&gt;
 
-&lt;h5 id=&quot;color-sampling&quot;&gt;Color Sampling&lt;/h5&gt;
+&lt;p&gt;&lt;strong&gt;2. Color Sampling&lt;/strong&gt;&lt;/p&gt;
+
 &lt;p&gt;前景色和背景色的取样阶段。第二个公式中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 并不是大海捞针，每一个都测试一遍的。而是从一堆可行解里面选择，这堆可行解就是通过「Color Sampling」过程筛选出来的。&lt;br /&gt;&lt;/p&gt;
 &lt;blockquote&gt;
   &lt;p&gt;这个阶段就是本文重点优化的阶段。&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h5 id=&quot;sample-pair-selection&quot;&gt;Sample Pair Selection&lt;/h5&gt;
+&lt;p&gt;&lt;strong&gt;3. Sample Pair Selection&lt;/strong&gt;&lt;/p&gt;
+
 &lt;p&gt;从上一个步骤中根据目标函数选取最佳的样本，也就是公式中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 了。&lt;/p&gt;
 
-&lt;h5 id=&quot;solving-alpha&quot;&gt;Solving Alpha&lt;/h5&gt;
+&lt;p&gt;&lt;strong&gt;4. Solving Alpha&lt;/strong&gt;&lt;/p&gt;
+
 &lt;p&gt;将上一步得到的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 带入第二个公式求出 &lt;code class=&quot;highlighter-rouge&quot;&gt;α&lt;/code&gt; ，从而得到「Alpha mattes」。&lt;/p&gt;
 
-&lt;h5 id=&quot;post-processing&quot;&gt;Post-Processing&lt;/h5&gt;
+&lt;p&gt;&lt;strong&gt;5. Post-Processing&lt;/strong&gt;&lt;/p&gt;
+
 &lt;p&gt;后处理阶段，通过一些算法使得「Alpha mattes」的图像更加平滑。&lt;/p&gt;
 
+&lt;hr /&gt;
 &lt;h2 id=&quot;现有方法的不足之处&quot;&gt;现有方法的不足之处&lt;/h2&gt;
 
-&lt;p&gt;mts：1.2.&lt;/p&gt;
+&lt;p&gt;不足之处主要在于「Color Sampling」阶段。如上面所说抠图主要运用「第二个公式」的 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 求出 &lt;code class=&quot;highlighter-rouge&quot;&gt;α&lt;/code&gt; 进而得到最终产物「Alpha mattes」，&lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 都要从候选样本中选取，所以该阶段是整个抠图过程的关键。&lt;/p&gt;
 
+&lt;h3 id=&quot;color-sampling-的困难点&quot;&gt;Color Sampling 的困难点&lt;/h3&gt;
+
+&lt;p&gt;「Color Sampling」阶段的困难主要在于两点，「&lt;strong&gt;取样标准选取&lt;/strong&gt;」和「&lt;strong&gt;取样集合太大&lt;/strong&gt;」的问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;已有的解决方法&quot;&gt;已有的解决方法&lt;/h3&gt;
+
+&lt;p&gt;对于「取样标准选取」的解决方法，最早提出的是一种「基于距离的取样方法」，即样本应该离未知点越近越好，这样的话选取的样本一般都集中在未知点到已知区域的边界处。但是很遗憾，通常正确的样本并不一定离未知点很近，所以需要多种标准来选择，比如「&lt;strong&gt;距离&lt;/strong&gt;」、「&lt;strong&gt;颜色&lt;/strong&gt;」、「&lt;strong&gt;纹理&lt;/strong&gt;」等。所以提出了「&lt;strong&gt;基于多种标准的取样方法&lt;/strong&gt;」&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;对于「取样集合太大」的解决方法，通常采用叫做「&lt;a href=&quot;https://arxiv.org/abs/1612.01601&quot;&gt;Superpixels&lt;/a&gt;」的方法。简单来说就是把很多颜色相近的像素点聚集起来成为一个「超像素」，这个「超像素」中只有一个颜色，就是之前聚集的像素点的「&lt;strong&gt;颜色均值&lt;/strong&gt;」。这样就大大减少了取样集合的大小。&lt;/p&gt;
+
+&lt;h3 id=&quot;不足之处&quot;&gt;不足之处&lt;/h3&gt;
+
+&lt;p&gt;对于「基于多种标准的取样方法」来说，主要的问题在于「&lt;strong&gt;多种标准之间的冲突问题&lt;/strong&gt;」，如一个正确的样本，它的颜色和未知点很近，但是距离却和未知点很远，这样标准之间就产生了冲突，很可能将正确的点给抛弃掉。从而产生「&lt;strong&gt;丢失正确样本 Missing True Samples（MTS）&lt;/strong&gt;」的问题。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;For example, if true color samples sembled to the color of an unknown pixel are far from the unknown pixel, the spatial closeness criterion and color criterion will be in conflict. The true samples may not be collected by existing methods in this case, because the dissatisfaction of spatial closeness criterion may result in uncompetitive scores for the true samples in the comparison to that for the pixels closed to unknown pixels.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;对于「Superpixels」来说，也一样的，可能正确的样本颜色被均值化，从而产生「MTS」问题。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;The mean color of a superpixel cannot represent the color outliers in the superpixel which may be the true color sample for alpha estimation.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
 &lt;h2 id=&quot;改进方法&quot;&gt;改进方法&lt;/h2&gt;
 
-&lt;p&gt;1.2.
-2=&amp;gt;新的问题=&amp;gt;FDMO(我的改进)
-目标函数是什么&lt;/p&gt;
+&lt;p&gt;该论文提出的「&lt;strong&gt;Pixel-level Discrete Multiobjective Sampling（PDMS）&lt;/strong&gt;」算法主要就是为了避免「MTS」问题。&lt;br /&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;结论&quot;&gt;结论&lt;/h2&gt;
+&lt;h3 id=&quot;多目标优化&quot;&gt;多目标优化&lt;/h3&gt;
 
-&lt;p&gt;1.alpha误差小
-2.样本集少&lt;/p&gt;
+&lt;p&gt;对于「多种标准之间的冲突问题」，将其看做「&lt;strong&gt;多目标优化问题 Multiobjective Optimization Problem (MOP)&lt;/strong&gt;」，从而解决标准之间的冲突。目标函数如下：&lt;/p&gt;
 
-&lt;h2 id=&quot;思考&quot;&gt;思考&lt;/h2&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;g_{1}(x) = \parallel C_{x} - C_{z} \parallel_{2}&lt;/script&gt;
 
-&lt;p&gt;好多云里雾里的，学会换个角度看问题，把其他领域的内容导通
-前景图，F+alpha mattes
-公式2的推导&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;g_{2}(x) = \parallel S_{x} - S_{z} \parallel_{2}&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;g_{3}(x) = \parallel T_{x} - T_{z} \parallel_{2}&lt;/script&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;其中\(g_{1}(x)\)、\(g_{2}(x)\)、\(g_{3}(x)\)为三个目标函数&lt;br /&gt;
+\(x\)为已知区域中的某个点，\(z\)为当前计算的未知区域点&lt;br /&gt;
+\(C\)为颜色向量、\(S\)为空间坐标向量、\(T\)为纹理特征向量&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;同时使所有目标函数最小化&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\min g_{1}(x),\min g_{2}(x),\ldots,\min g_{n}(x)&lt;/script&gt;
+
+&lt;p&gt;注意这里只是一个样本点的选取，在「Color Sampling」过程中是要选取 &lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 两个样本点的，所以该问题其实是&lt;strong&gt;两个&lt;/strong&gt;「MOP」问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;pixel-level&quot;&gt;Pixel-Level&lt;/h3&gt;
+
+&lt;p&gt;对于「Superpixels」的问题，想法很简单，既然均值化会丢失真实样本，那不均值化好了，直接从所有像素中取样，即「Pixel-Level」。但「取样集合太大」的问题不又回来了吗，进入死循环中。&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;这个时候就需要跳出固定思维了，本文通过设计了一个新的算法「&lt;strong&gt;Fast Discrete Multiobjective Optimization（FDMO）&lt;/strong&gt;」从而避免了「取样集合太大」导致的「计算量过大问题」。&lt;/p&gt;
+
+&lt;h4 id=&quot;fdmo&quot;&gt;FDMO&lt;/h4&gt;
+
+&lt;p&gt;「FDMO」的主要优化依据在于，经过「MOP」筛选之后，候选样本集所在的「Pareto Optimal Solution」很小很小。在 &lt;code class=&quot;highlighter-rouge&quot;&gt;168,409&lt;/code&gt; 个可行解中最后只有 &lt;code class=&quot;highlighter-rouge&quot;&gt;11&lt;/code&gt; 在「Pareto Set」中。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;For the foreground sampling MOP defined in Subsection III-A2, the universal set contains 168,409 feasible solutions while only 11 solutions are Pareto optimal in this case.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;在这样的情况下，算法的核心思想就是&lt;strong&gt;在每一趟遍历中，把所有该剔除（被支配）的样本给剔除掉&lt;/strong&gt;。这样如果最终「Pareto Optimal Solution」的大小为 &lt;code class=&quot;highlighter-rouge&quot;&gt;k&lt;/code&gt;，就只需要在 &lt;code class=&quot;highlighter-rouge&quot;&gt;k&lt;/code&gt; 趟遍历中完成算法。设取样集合总大小为 &lt;code class=&quot;highlighter-rouge&quot;&gt;n&lt;/code&gt; 则算法的时间复杂度为 &lt;code class=&quot;highlighter-rouge&quot;&gt;O(kn)&lt;/code&gt; 。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/*
+ *  Input: all possible values C.
+ *  Output: C, i (the first i − 1 elements in array C are Pareto optimal)
+ */
+i ← 1
+j ← the number of elements in array C
+while i ≤ j do 
+    cmp ← i + 1
+    while cmp ≤ j do
+        if C[i] dominate C[cmp] then
+            swap(C[cmp], C[j])
+            j ← j − 1
+        else if C[cmp] dominate C[i] then
+            swap(C[i], C[cmp])
+            swap(C[cmp], C[j])
+            j ← j − 1
+            cmp ← i + 1
+        else
+            cmp ← cmp + 1
+        end if
+    end while
+    i ← i + 1
+end while
+return C, i
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt; &lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Best&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Worst&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Average&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;时间复杂度&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;\(O(n)\)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;\(O(n^2)\)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;\(O(kn)\)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;空间复杂度&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;\(O(n)\)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;\(O(n)\)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;\(O(n)\)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;选取样本对的方法&quot;&gt;选取样本对的方法&lt;/h2&gt;
+
+&lt;p&gt;也就是「Sample Pair Selection」阶段，在上一阶段中得到的候选样本里选取最佳样本。&lt;br /&gt;
+其评价方程如下：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_{z}(x_{F},x_{B}) = O_z^{(c)}(x_{F},x_{B})\times O_z^{(s)}(x_{F},x_{B})&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_z^{(c)}(x_{F},x_{B})=\exp(-\parallel C_{z}-(\hat{\alpha_{z}}C_{x_{F}}+(1-\hat{\alpha_{z}})C_{x_{B}}))\parallel_{2})&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_z^{(s)}(x_{F},x_{B})=\exp(\frac{-\parallel S_{z}-S_{x_{F}}\parallel_{2}}{\frac{1}{|\Omega_{F}|}\sum_{x_{i}\in\Omega_{F}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})\times\exp(\frac{-\parallel S_{z}-S_{x_{B}}\parallel_{2}}{\frac{1}{|\Omega_{B}|}\sum_{x_{i}\in\Omega_{B}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})&lt;/script&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;是不是头都要炸了？哈哈哈&lt;br /&gt;
+静下心来，其实很简单&lt;br /&gt;
+第二个公式的意思就是用算出来的 alpha、B 和 F&lt;br /&gt;
+反过来求 I‘ ，看看这个 I’ 的颜色有多大变化，变化越小越好&lt;br /&gt;
+第三个公式的意思就是 F 和 B 应该是所有样本里距离最近的&lt;br /&gt;
+第一个公式就是这两者的叉乘，两者一起评估&lt;br /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;结论--思考&quot;&gt;结论 &amp;amp; 思考&lt;/h2&gt;
+
+&lt;p&gt;结论就是该算法最终在「&lt;strong&gt;很少的候选样本&lt;/strong&gt;」中达到了「&lt;strong&gt;很小的 Alpha 误差&lt;/strong&gt;」。&lt;br /&gt;
+但是速度方面不尽人意，空间方面耗费很小。&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;思考主要想说一下自己之前对「最终产物」的误解，以及「前景图」生成过程。&lt;br /&gt;
+还有「第二个公式」的推导过程（因为论文中少了一个平方，困扰了我很久），以及选择样本对时「目标函数」的作用。
+最后是「FDMO」算法在我想的一个特殊情况下时间复杂度达到了\(O(2^n)\)，以及我的改进方法。&lt;br /&gt;
+由于篇幅太长了，我自己都不愿看了，这些内容就放到下一篇吧（让我偷个懒）。&lt;/p&gt;
 </description>
         <pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate>
         <link>http://localhost:4000/2019/04/11/PDMS4IM/</link>
