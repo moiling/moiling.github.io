@@ -10,9 +10,9 @@
     <meta name="keyword"  content="">
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <title>Hello World! - MOI</title>
+    <title>Thoughts on PDMS - MOI</title>
 
-    <link rel="canonical" href="http://localhost:4000/2019/04/09/Hello-World/">
+    <link rel="canonical" href="http://localhost:4000/2019/04/21/ToPDMS/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -125,12 +125,12 @@
 
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
-<!-- <img src="/img/in-post/helloworld-20190409-bg.jpg" width="0" height="0"> -->
+<!-- <img src="/img/in-post/PDMS4IM-20190411/bg.jpg" width="0" height="0"> -->
 
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
-        background-image: url('/img/in-post/helloworld-20190409-bg.jpg')
+        background-image: url('/img/in-post/PDMS4IM-20190411/bg.jpg')
     }
 </style>
 <!-- MathJax support -->
@@ -144,15 +144,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#Life" title="Life">Life</a>
+                        <a class="tag" href="/tags/#CV" title="CV">CV</a>
                         
                     </div>
-                    <h1>Hello World!</h1>
+                    <h1>Thoughts on PDMS</h1>
                     
                     
-                    <h2 class="subheading">我的博客开通啦！</h2>
+                    <h2 class="subheading">Thoughts on "Pixel-level Discrete Multiobjective Sampling for Image Matting".</h2>
                     
-                    <span class="meta">Posted by moiling on April 9, 2019</span>
+                    <span class="meta">Posted by moiling on April 21, 2019</span>
                 </div>
             </div>
         </div>
@@ -170,19 +170,142 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h2 id="先说原因">先说原因</h2>
-<p>最近总算是把考试给结束掉了，要开启新的学习篇章了，把学习的艰难过程做一个记录吧！<br />
-<br />
-这段时间面试备考，回顾了以前做过的项目和记录的学习笔记，感觉就是，“哇！我学了这么多东西吗！为什么没有好好地记录下来呢？”<br />
-<br />
-虽然很多过程看起来都很愚蠢，但都是成长的一部分啊，说不定还有其他的朋友和我一样往坑里跳！<br />
-<br /></p>
+				<h2 id="首先">首先</h2>
 
-<h2 id="再说内容">再说内容</h2>
-<p>内容主要以我平时的学习记录为主，一些知识的总结，踩坑记录等等。<br />
-<br />
-有时间的话再聊聊一些生活上的事情，但多半我是懒得写的（笑）。</p>
+<p>虽然现在为读不懂另一篇论文而急得抓耳挠腮，但如果再不把对<a href="/2019/04/11/PDMS4IM/">上一篇</a>的思考记下来我就忘掉了啊！<br /></p>
 
+<hr />
+<h2 id="最终产物">最终产物</h2>
+
+<p>在前文中介绍了，Image Matting(抠图)的最终产物是「<strong>Alpha mattes</strong>」而不是一张抠出来的彩色前景图。因为Image Matting关心的并不是得到图片，而是得到<strong>前景和背景的关系</strong>，也就是每个像素中<strong>前景颜色</strong>所占比例，即「<strong>透明度</strong>」。<br />
+<br />
+不知道有没有和我一样喜欢数码绘的朋友发现了一个问题，在不同混合模式下，每个颜色通道的混合比例是不同的。而我们再重新看到公式一:<br /></p>
+
+<script type="math/tex; mode=display">I_{i} = \alpha F_{i} + (1-\alpha) B_{i}</script>
+
+<p>这里的 \(\alpha\) 可是一个<strong>标量</strong>啊！多个通道使用了同一个  \(\alpha\) ，这样抠出来的图怎么能行呢？而且我只得到了一个透明度贴图(Alpha mattes)啊，直接进行混合的话，怎么可能把原图抠出来呢？(哈哈，听不懂我在说什么吧，我也听不懂，我们看图说话吧！)<br /></p>
+
+<h3 id="问题一难道-alpha-不应该是个矢量吗">问题一：难道 \(\alpha\) 不应该是个矢量吗？</h3>
+
+<p><img src="/img/in-post/ToPSMS-20190421/00.jpeg" alt="img" /></p>
+
+<p>如上图所示，在不同的混合模式下(上为Darken，下为Mutiply)，中间的混合区域颜色是不同的，也就是说，每个颜色通道的混合比例是不同的，对于每个颜色通道，应该有一个自己的 \(\alpha\) ，所以 \(\alpha\) 难道不应该是<strong>矢量</strong>吗？<br /></p>
+
+<h3 id="问题二我有一个-alpha-mattes-了我怎么得到前景图呢">问题二：我有一个 Alpha mattes 了，我怎么得到前景图呢？</h3>
+
+<p>比如我现在想要把如下图中的红色圆给抠出来
+<img src="/img/in-post/ToPSMS-20190421/01.jpeg" alt="img" /></p>
+
+<p>通过计算我得到了一个Alpha mattes如下
+<img src="/img/in-post/ToPSMS-20190421/02.jpeg" alt="img" /></p>
+
+<p>将两者按照透明度混合的话，我将得到如下的图
+<img src="/img/in-post/ToPSMS-20190421/03.jpeg" alt="img" /></p>
+
+<p>啥？？？我要的才不是这个，中间的紫色是怎么回事？完全没有把蓝色通道给去掉啊！所以其实还是问题一， \(\alpha\) 真的不应该是一个标量吗？要得到的图其实应该是如下图的(咦，这不是Foreo Luna吗？)
+<img src="/img/in-post/ToPSMS-20190421/04.jpeg" alt="img" /></p>
+
+<h3 id="解答">解答</h3>
+
+<p>嗯，其实最终还是我错了，问了师兄才知道，是我领域没搞清楚。Image Matting要解决的问题只有一个，那就是「<strong>前景占整个图片的透明度</strong>」。而生产以上的图片，是「图像合成」领域要解决的事情。就拿上面的例子来说，如果要抠出最后的那张图，所要的输入不只是「Alpha mattes」还有一个很重要的就是在「Sample Pair Selection」中取样得到的「<strong>前景色</strong>」。两者混合就可以得到了，同理每个通道的考虑也应该是「图像合成」要做的事。</p>
+<blockquote>
+  <p>Image matting refers to the soft extraction of foreground objects from a color image by estimating the opacity of each pixel.</p>
+</blockquote>
+
+<p>所以我觉得……我确实有点太跳跃了，应该完善一下基础才行。</p>
+
+<hr />
+<h2 id="公式二">公式二</h2>
+
+<p>公式二的推导费了我很大功夫，有一个主要原因是论文中的公式二居然，写！错！了！<br />
+写成了<script type="math/tex">\hat{\alpha}=\frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)}</script>，而正确的应该是<script type="math/tex">\hat{\alpha}=\frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)^{2}}</script>，分母少了个平方啊！<br />
+但我认为这里的推导还是有东西讲的，其实公式二是由上面的公式一推导而来的，而且它计算的是一个「<strong>理想情况</strong>」，这一点非常关键！由公式一很好推出一个结论：<br /></p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned}
+I &= \alpha F + (1-\alpha) B \\
+I-B &= \alpha (F-B) \\
+\alpha &= \frac{\left\|I-B\right\|_{2}}{\left\|F-B\right\|_{2}}
+\end{aligned} %]]></script>
+
+<p>但这是有条件的，即向量I-B和向量F-B是「<strong>共线</strong>」的即B、I、F共线，这就是刚刚说的「<strong>理想情况</strong>」，而一般情况下，是不会共线的。</p>
+
+<p><img src="/img/in-post/ToPSMS-20190421/05.jpeg" alt="img" /></p>
+
+<p>所以对于一般情况，我们就的计算 I 在 BF 上的「<strong>投影</strong>」I’ 了，这样就推出公式二了</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned}
+\hat{\alpha} &= \frac{\left\|I'-B\right\|_{2}}{\left\|F-B\right\|_{2}} \\
+\hat{\alpha} &= \frac{\left\|I-B\right\|_{2} \times\cos\theta }{\left\|F-B\right\|_{2}} \\
+\hat{\alpha} &= \frac{\frac{(I-B) \cdot(F-B)}{\left\|F-B\right\|_{2}}}{\left\|F-B\right\|_{2}} \\
+\hat{\alpha} &= \frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)^{2}}
+\end{aligned} %]]></script>
+
+<hr />
+<h2 id="评价函数">评价函数</h2>
+
+<p>这里所说的评价函数是指对于颜色评价函数，其实之前不能理解就是因为没能理解到上面所说的「理想情况」。其实「理想情况」就是<strong>样本选取正确</strong>的情况，共线时的误差为零。而 I 离得越远，和计算出来的 I’ 的误差就越大，复原的颜色误差就越大。</p>
+
+<script type="math/tex; mode=display">O_{z}^{(c)}\left(x_{F}, x_{B}\right)=\exp \left(-\| C_{z}-\left(\hat{\alpha}_{z} C_{x_{P}}+\left(1-\hat{\alpha}_{z}\right) C_{x_{B}}\right)\right)\left\|_{2}\right)</script>
+
+<p>这里还有一个问题就是这个评价函数为什么不作为多目标计算时候的目标函数呢？那样在多目标选取的时候就已经可以排除掉不佳的答案了，是因为计算量太大了吗？</p>
+
+<hr />
+<h2 id="fdmo">FDMO</h2>
+
+<p>在FDMO中，每次迭代如果找到了一个支配当前解的情况，就要和当前解交换，然后从头开始这次迭代。在某种情况下会重复很多次没必要的计算。我认为最差情况下每次迭代的最坏结果达到了\(O(n^2)\)，而不是文中所写的\(O(2(n-1-i)\)</p>
+
+<p><img src="/img/in-post/ToPSMS-20190421/06.jpeg" alt="img" /></p>
+
+<p>其中 a &gt; b 是 a Pareto Dominate b的意思。<br />
+而且如果其他剩余的元素(空心圆)也是形如这样，结构递归下去的话，最差的总时间复杂度达到了\(O(2^n)\)！当然这个情况在宇宙毁灭前都不一定能随机到。</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned}
+&(\frac{n}{2^1})^2+(\frac{n}{2^2})^2+(\frac{n}{2^3})^2+\ldots+(\frac{n}{2^{log(n)}})^2\\
+&= 1^2 + 2^2 + 4^2 + 8^2 + \ldots + (\frac{n}{2})^2\\
+&= 4^0 + 4^1 + 4^2 + 4^3 + \ldots + 4^{log(n)-1}\\
+&= \frac{4^{log(n)-1}-1}{3}\\
+&= O(4^{logn(n)})\\
+&= O(2^n)\\
+\end{aligned} %]]></script>
+
+<p>所以我稍微改了一下程序，只要不要走那么多次回头路就可以了。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>i ← 1
+j ← the number of elements in array C
+while j &lt;= j do
+    cmp ← i + 1
+    exchanged ← False
+    while cmp &lt;= j do
+        if C[i] dominate C[cmp] then
+            swap(C[cmp], C[j])
+            j ← j - 1
+        else if C[cmp] dominate C[i] then
+            swap(C[i], C[cmp])
+            swap(C[cmp], C[j])
+            j ← j - 1
+            cmp ← cmp + 1     // 继续走到底，交换到最优的解
+            exchanged ← true  // 交换了表示要重走一次
+        else
+            cmp ← cmp + 1
+        end if
+
+        if cmp = j and exchanged then  // 如果到了最后看情况是否需要重复
+            cmp ← i + 1
+            exchanged ← False
+        end if
+    end while
+    i ← i + 1
+end while
+return C, i
+</code></pre></div></div>
+
+<hr />
+<h2 id="最后">最后</h2>
+
+<p>如果还有什么想到的新问题，或者有误的地方会及时改正！先告一段落吧，有时间把问题模型整理一下，现在最主要的任务是解决问题模型呢。</p>
 
 
                 <hr>
@@ -192,10 +315,10 @@
 
                 <ul class="pager">
                     
-                    
-                    <li class="next">
-                        <a href="/2019/04/11/PDMS4IM/" data-toggle="tooltip" data-placement="top" title="PDMS for Image Matting">Next Post &rarr;</a>
+                    <li class="previous">
+                        <a href="/2019/04/11/PDMS4IM/" data-toggle="tooltip" data-placement="top" title="PDMS for Image Matting">&larr; Previous Post</a>
                     </li>
+                    
                     
                 </ul>
 
@@ -207,6 +330,20 @@
             </div>
 
     <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
         
         
     <!-- Sidebar Container -->
@@ -433,6 +570,49 @@
 
 
 <!-- one-page-nav-js, Doc:https://github.com/davist11/jQuery-One-Page-Nav -->
+
+
+<!-- create the directory and set the animatescroll. failed to adjust the scroll event in hux-blog.js so the scroll animation looks odd. -->
+<script type="text/javascript">
+    function createCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+    createCatalog(".catalog-body");
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+</script>
+
+<!-- one-page-nav.js -->
+<script>
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "easeOutExpo",
+            filter: "",
+            scrollSpeed: 800,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
 
 
 

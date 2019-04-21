@@ -5,9 +5,157 @@
     <description>THE MOI'S WORLD</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Fri, 12 Apr 2019 07:50:51 +0000</pubDate>
-    <lastBuildDate>Fri, 12 Apr 2019 07:50:51 +0000</lastBuildDate>
+    <pubDate>Sun, 21 Apr 2019 06:38:42 +0000</pubDate>
+    <lastBuildDate>Sun, 21 Apr 2019 06:38:42 +0000</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
+    
+      <item>
+        <title>Thoughts on PDMS</title>
+        <description>&lt;h2 id=&quot;首先&quot;&gt;首先&lt;/h2&gt;
+
+&lt;p&gt;虽然现在为读不懂另一篇论文而急得抓耳挠腮，但如果再不把对&lt;a href=&quot;/2019/04/11/PDMS4IM/&quot;&gt;上一篇&lt;/a&gt;的思考记下来我就忘掉了啊！&lt;br /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;最终产物&quot;&gt;最终产物&lt;/h2&gt;
+
+&lt;p&gt;在前文中介绍了，Image Matting(抠图)的最终产物是「&lt;strong&gt;Alpha mattes&lt;/strong&gt;」而不是一张抠出来的彩色前景图。因为Image Matting关心的并不是得到图片，而是得到&lt;strong&gt;前景和背景的关系&lt;/strong&gt;，也就是每个像素中&lt;strong&gt;前景颜色&lt;/strong&gt;所占比例，即「&lt;strong&gt;透明度&lt;/strong&gt;」。&lt;br /&gt;
+&lt;br /&gt;
+不知道有没有和我一样喜欢数码绘的朋友发现了一个问题，在不同混合模式下，每个颜色通道的混合比例是不同的。而我们再重新看到公式一:&lt;br /&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;I_{i} = \alpha F_{i} + (1-\alpha) B_{i}&lt;/script&gt;
+
+&lt;p&gt;这里的 \(\alpha\) 可是一个&lt;strong&gt;标量&lt;/strong&gt;啊！多个通道使用了同一个  \(\alpha\) ，这样抠出来的图怎么能行呢？而且我只得到了一个透明度贴图(Alpha mattes)啊，直接进行混合的话，怎么可能把原图抠出来呢？(哈哈，听不懂我在说什么吧，我也听不懂，我们看图说话吧！)&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;问题一难道-alpha-不应该是个矢量吗&quot;&gt;问题一：难道 \(\alpha\) 不应该是个矢量吗？&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/in-post/ToPSMS-20190421/00.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;如上图所示，在不同的混合模式下(上为Darken，下为Mutiply)，中间的混合区域颜色是不同的，也就是说，每个颜色通道的混合比例是不同的，对于每个颜色通道，应该有一个自己的 \(\alpha\) ，所以 \(\alpha\) 难道不应该是&lt;strong&gt;矢量&lt;/strong&gt;吗？&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;问题二我有一个-alpha-mattes-了我怎么得到前景图呢&quot;&gt;问题二：我有一个 Alpha mattes 了，我怎么得到前景图呢？&lt;/h3&gt;
+
+&lt;p&gt;比如我现在想要把如下图中的红色圆给抠出来
+&lt;img src=&quot;/img/in-post/ToPSMS-20190421/01.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;通过计算我得到了一个Alpha mattes如下
+&lt;img src=&quot;/img/in-post/ToPSMS-20190421/02.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;将两者按照透明度混合的话，我将得到如下的图
+&lt;img src=&quot;/img/in-post/ToPSMS-20190421/03.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;啥？？？我要的才不是这个，中间的紫色是怎么回事？完全没有把蓝色通道给去掉啊！所以其实还是问题一， \(\alpha\) 真的不应该是一个标量吗？要得到的图其实应该是如下图的(咦，这不是Foreo Luna吗？)
+&lt;img src=&quot;/img/in-post/ToPSMS-20190421/04.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;解答&quot;&gt;解答&lt;/h3&gt;
+
+&lt;p&gt;嗯，其实最终还是我错了，问了师兄才知道，是我领域没搞清楚。Image Matting要解决的问题只有一个，那就是「&lt;strong&gt;前景占整个图片的透明度&lt;/strong&gt;」。而生产以上的图片，是「图像合成」领域要解决的事情。就拿上面的例子来说，如果要抠出最后的那张图，所要的输入不只是「Alpha mattes」还有一个很重要的就是在「Sample Pair Selection」中取样得到的「&lt;strong&gt;前景色&lt;/strong&gt;」。两者混合就可以得到了，同理每个通道的考虑也应该是「图像合成」要做的事。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;Image matting refers to the soft extraction of foreground objects from a color image by estimating the opacity of each pixel.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;所以我觉得……我确实有点太跳跃了，应该完善一下基础才行。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;公式二&quot;&gt;公式二&lt;/h2&gt;
+
+&lt;p&gt;公式二的推导费了我很大功夫，有一个主要原因是论文中的公式二居然，写！错！了！&lt;br /&gt;
+写成了&lt;script type=&quot;math/tex&quot;&gt;\hat{\alpha}=\frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)}&lt;/script&gt;，而正确的应该是&lt;script type=&quot;math/tex&quot;&gt;\hat{\alpha}=\frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)^{2}}&lt;/script&gt;，分母少了个平方啊！&lt;br /&gt;
+但我认为这里的推导还是有东西讲的，其实公式二是由上面的公式一推导而来的，而且它计算的是一个「&lt;strong&gt;理想情况&lt;/strong&gt;」，这一点非常关键！由公式一很好推出一个结论：&lt;br /&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{aligned}
+I &amp;= \alpha F + (1-\alpha) B \\
+I-B &amp;= \alpha (F-B) \\
+\alpha &amp;= \frac{\left\|I-B\right\|_{2}}{\left\|F-B\right\|_{2}}
+\end{aligned} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;但这是有条件的，即向量I-B和向量F-B是「&lt;strong&gt;共线&lt;/strong&gt;」的即B、I、F共线，这就是刚刚说的「&lt;strong&gt;理想情况&lt;/strong&gt;」，而一般情况下，是不会共线的。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/in-post/ToPSMS-20190421/05.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;所以对于一般情况，我们就的计算 I 在 BF 上的「&lt;strong&gt;投影&lt;/strong&gt;」I’ 了，这样就推出公式二了&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{aligned}
+\hat{\alpha} &amp;= \frac{\left\|I'-B\right\|_{2}}{\left\|F-B\right\|_{2}} \\
+\hat{\alpha} &amp;= \frac{\left\|I-B\right\|_{2} \times\cos\theta }{\left\|F-B\right\|_{2}} \\
+\hat{\alpha} &amp;= \frac{\frac{(I-B) \cdot(F-B)}{\left\|F-B\right\|_{2}}}{\left\|F-B\right\|_{2}} \\
+\hat{\alpha} &amp;= \frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)^{2}}
+\end{aligned} %]]&gt;&lt;/script&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;评价函数&quot;&gt;评价函数&lt;/h2&gt;
+
+&lt;p&gt;这里所说的评价函数是指对于颜色评价函数，其实之前不能理解就是因为没能理解到上面所说的「理想情况」。其实「理想情况」就是&lt;strong&gt;样本选取正确&lt;/strong&gt;的情况，共线时的误差为零。而 I 离得越远，和计算出来的 I’ 的误差就越大，复原的颜色误差就越大。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_{z}^{(c)}\left(x_{F}, x_{B}\right)=\exp \left(-\| C_{z}-\left(\hat{\alpha}_{z} C_{x_{P}}+\left(1-\hat{\alpha}_{z}\right) C_{x_{B}}\right)\right)\left\|_{2}\right)&lt;/script&gt;
+
+&lt;p&gt;这里还有一个问题就是这个评价函数为什么不作为多目标计算时候的目标函数呢？那样在多目标选取的时候就已经可以排除掉不佳的答案了，是因为计算量太大了吗？&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;fdmo&quot;&gt;FDMO&lt;/h2&gt;
+
+&lt;p&gt;在FDMO中，每次迭代如果找到了一个支配当前解的情况，就要和当前解交换，然后从头开始这次迭代。在某种情况下会重复很多次没必要的计算。我认为最差情况下每次迭代的最坏结果达到了\(O(n^2)\)，而不是文中所写的\(O(2(n-1-i)\)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/in-post/ToPSMS-20190421/06.jpeg&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;其中 a &amp;gt; b 是 a Pareto Dominate b的意思。&lt;br /&gt;
+而且如果其他剩余的元素(空心圆)也是形如这样，结构递归下去的话，最差的总时间复杂度达到了\(O(2^n)\)！当然这个情况在宇宙毁灭前都不一定能随机到。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{aligned}
+&amp;(\frac{n}{2^1})^2+(\frac{n}{2^2})^2+(\frac{n}{2^3})^2+\ldots+(\frac{n}{2^{log(n)}})^2\\
+&amp;= 1^2 + 2^2 + 4^2 + 8^2 + \ldots + (\frac{n}{2})^2\\
+&amp;= 4^0 + 4^1 + 4^2 + 4^3 + \ldots + 4^{log(n)-1}\\
+&amp;= \frac{4^{log(n)-1}-1}{3}\\
+&amp;= O(4^{logn(n)})\\
+&amp;= O(2^n)\\
+\end{aligned} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;所以我稍微改了一下程序，只要不要走那么多次回头路就可以了。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;i ← 1
+j ← the number of elements in array C
+while j &amp;lt;= j do
+    cmp ← i + 1
+    exchanged ← False
+    while cmp &amp;lt;= j do
+        if C[i] dominate C[cmp] then
+            swap(C[cmp], C[j])
+            j ← j - 1
+        else if C[cmp] dominate C[i] then
+            swap(C[i], C[cmp])
+            swap(C[cmp], C[j])
+            j ← j - 1
+            cmp ← cmp + 1     // 继续走到底，交换到最优的解
+            exchanged ← true  // 交换了表示要重走一次
+        else
+            cmp ← cmp + 1
+        end if
+
+        if cmp = j and exchanged then  // 如果到了最后看情况是否需要重复
+            cmp ← i + 1
+            exchanged ← False
+        end if
+    end while
+    i ← i + 1
+end while
+return C, i
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;最后&quot;&gt;最后&lt;/h2&gt;
+
+&lt;p&gt;如果还有什么想到的新问题，或者有误的地方会及时改正！先告一段落吧，有时间把问题模型整理一下，现在最主要的任务是解决问题模型呢。&lt;/p&gt;
+</description>
+        <pubDate>Sun, 21 Apr 2019 00:00:00 +0000</pubDate>
+        <link>http://localhost:4000/2019/04/21/ToPDMS/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/04/21/ToPDMS/</guid>
+        
+        <category>CV</category>
+        
+        
+      </item>
     
       <item>
         <title>PDMS for Image Matting</title>
@@ -123,7 +271,7 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 &lt;br /&gt;
 
 &lt;h4 id=&quot;计算-α-的公式&quot;&gt;计算 α 的公式&lt;/h4&gt;
 
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;\hat{\alpha} = \frac{(I-B)\cdot(F-B)}{(\parallel F-B \parallel_2)^2}&lt;/script&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\hat{\alpha}=\frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)^{2}}&lt;/script&gt;
 
 &lt;p&gt;该公式是由以上「重要公式」推导出来的，有多个颜色通道，所以这里的 &lt;code class=&quot;highlighter-rouge&quot;&gt;I&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;F&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;B&lt;/code&gt; 均为向量。&lt;br /&gt;
 其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;‖*‖₂&lt;/code&gt; 为&lt;a href=&quot;https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm&quot;&gt;欧几里德范数&lt;/a&gt;，在这里就和「模」差不多。&lt;br /&gt;
@@ -193,11 +341,8 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 &lt;br /&gt;
 
 &lt;p&gt;对于「多种标准之间的冲突问题」，将其看做「&lt;strong&gt;多目标优化问题 Multiobjective Optimization Problem (MOP)&lt;/strong&gt;」，从而解决标准之间的冲突。目标函数如下：&lt;/p&gt;
 
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;g_{1}(x) = \parallel C_{x} - C_{z} \parallel_{2}&lt;/script&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;g_{2}(x) = \parallel S_{x} - S_{z} \parallel_{2}&lt;/script&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;g_{3}(x) = \parallel T_{x} - T_{z} \parallel_{2}&lt;/script&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{aligned} g_{1}(x) &amp;=\left\|C_{x}-C_{z}\right\|_{2} \\ g_{2}(x) &amp;=\left\|S_{x}-S_{z}\right\|_{2} \\ g_{3}(x) &amp;=\left\|T_{x}-T_{z}\right\|_{2} \end{aligned} %]]&gt;&lt;/script&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;其中\(g_{1}(x)\)、\(g_{2}(x)\)、\(g_{3}(x)\)为三个目标函数&lt;br /&gt;
@@ -283,17 +428,21 @@ return C, i
 &lt;p&gt;也就是「Sample Pair Selection」阶段，在上一阶段中得到的候选样本里选取最佳样本。&lt;br /&gt;
 其评价方程如下：&lt;/p&gt;
 
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_{z}(x_{F},x_{B}) = O_z^{(c)}(x_{F},x_{B})\times O_z^{(s)}(x_{F},x_{B})&lt;/script&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_z^{(c)}(x_{F},x_{B})=\exp(-\parallel C_{z}-(\hat{\alpha_{z}}C_{x_{F}}+(1-\hat{\alpha_{z}})C_{x_{B}}))\parallel_{2})&lt;/script&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;O_z^{(s)}(x_{F},x_{B})=\exp(\frac{-\parallel S_{z}-S_{x_{F}}\parallel_{2}}{\frac{1}{|\Omega_{F}|}\sum_{x_{i}\in\Omega_{F}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})\times\exp(\frac{-\parallel S_{z}-S_{x_{B}}\parallel_{2}}{\frac{1}{|\Omega_{B}|}\sum_{x_{i}\in\Omega_{B}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})&lt;/script&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{aligned}
+O_{z}\left(x_{F}, x_{B}\right)&amp;=O_{z}^{(c)}\left(x_{F}, x_{B}\right) \times O_{z}^{(s)}\left(x_{F}, x_{B}\right)
+\\
+\\
+O_{z}^{(c)}\left(x_{F}, x_{B}\right)&amp;=\exp \left(-\| C_{z}-\left(\hat{\alpha}_{z} C_{x_{P}}+\left(1-\hat{\alpha}_{z}\right) C_{x_{B}}\right)\right)\left\|_{2}\right)
+\\
+O_{z}^{(s)}\left(x_{F}, x_{B}\right)&amp;=\exp \left(\frac{-\left\|S_{z}-S_{x_{F}}\right\|_{2}}{\frac{1}{\left|\Omega_{F}\right|} \sum_{x_{i} \in \Omega_{F}}\left\|S_{z}-S_{x_{i}}\right\|_{2}}\right) \times \exp \left(\frac{-\left\|S_{z}-S_{x_{B}}\right\|_{2}}{\frac{1}{\left|\Omega_{B}\right|} \sum_{x_{i} \in \Omega_{B}}\left\|S_{z}-S_{x_{i}}\right\|_{2}}\right)
+\end{aligned} %]]&gt;&lt;/script&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;是不是头都要炸了？哈哈哈&lt;br /&gt;
 静下心来，其实很简单&lt;br /&gt;
 第二个公式的意思就是用算出来的 alpha、B 和 F&lt;br /&gt;
-反过来求 I‘ ，看看这个 I’ 的颜色有多大变化，变化越小越好&lt;br /&gt;
+反过来求 I’ ，看看这个 I’ 的颜色有多大变化，变化越小越好&lt;br /&gt;
 第三个公式的意思就是 F 和 B 应该是所有样本里距离最近的&lt;br /&gt;
 第一个公式就是这两者的叉乘，两者一起评估&lt;br /&gt;&lt;/p&gt;
 &lt;/blockquote&gt;

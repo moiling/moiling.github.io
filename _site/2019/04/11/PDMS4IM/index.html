@@ -282,7 +282,7 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 <br />
 
 <h4 id="计算-α-的公式">计算 α 的公式</h4>
 
-<script type="math/tex; mode=display">\hat{\alpha} = \frac{(I-B)\cdot(F-B)}{(\parallel F-B \parallel_2)^2}</script>
+<script type="math/tex; mode=display">\hat{\alpha}=\frac{(I-B) \cdot(F-B)}{\left(\|F-B\|_{2}\right)^{2}}</script>
 
 <p>该公式是由以上「重要公式」推导出来的，有多个颜色通道，所以这里的 <code class="highlighter-rouge">I</code>、<code class="highlighter-rouge">F</code>、<code class="highlighter-rouge">B</code> 均为向量。<br />
 其中 <code class="highlighter-rouge">‖*‖₂</code> 为<a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm">欧几里德范数</a>，在这里就和「模」差不多。<br />
@@ -352,11 +352,8 @@ i 表示通道，比如在RGB色域中就是R G B三个通道啦 <br />
 
 <p>对于「多种标准之间的冲突问题」，将其看做「<strong>多目标优化问题 Multiobjective Optimization Problem (MOP)</strong>」，从而解决标准之间的冲突。目标函数如下：</p>
 
-<script type="math/tex; mode=display">g_{1}(x) = \parallel C_{x} - C_{z} \parallel_{2}</script>
-
-<script type="math/tex; mode=display">g_{2}(x) = \parallel S_{x} - S_{z} \parallel_{2}</script>
-
-<script type="math/tex; mode=display">g_{3}(x) = \parallel T_{x} - T_{z} \parallel_{2}</script>
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned} g_{1}(x) &=\left\|C_{x}-C_{z}\right\|_{2} \\ g_{2}(x) &=\left\|S_{x}-S_{z}\right\|_{2} \\ g_{3}(x) &=\left\|T_{x}-T_{z}\right\|_{2} \end{aligned} %]]></script>
 
 <blockquote>
   <p>其中\(g_{1}(x)\)、\(g_{2}(x)\)、\(g_{3}(x)\)为三个目标函数<br />
@@ -442,17 +439,21 @@ return C, i
 <p>也就是「Sample Pair Selection」阶段，在上一阶段中得到的候选样本里选取最佳样本。<br />
 其评价方程如下：</p>
 
-<script type="math/tex; mode=display">O_{z}(x_{F},x_{B}) = O_z^{(c)}(x_{F},x_{B})\times O_z^{(s)}(x_{F},x_{B})</script>
-
-<script type="math/tex; mode=display">O_z^{(c)}(x_{F},x_{B})=\exp(-\parallel C_{z}-(\hat{\alpha_{z}}C_{x_{F}}+(1-\hat{\alpha_{z}})C_{x_{B}}))\parallel_{2})</script>
-
-<script type="math/tex; mode=display">O_z^{(s)}(x_{F},x_{B})=\exp(\frac{-\parallel S_{z}-S_{x_{F}}\parallel_{2}}{\frac{1}{|\Omega_{F}|}\sum_{x_{i}\in\Omega_{F}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})\times\exp(\frac{-\parallel S_{z}-S_{x_{B}}\parallel_{2}}{\frac{1}{|\Omega_{B}|}\sum_{x_{i}\in\Omega_{B}}\parallel S_{z}-S_{x_{i}}\parallel_{2}})</script>
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned}
+O_{z}\left(x_{F}, x_{B}\right)&=O_{z}^{(c)}\left(x_{F}, x_{B}\right) \times O_{z}^{(s)}\left(x_{F}, x_{B}\right)
+\\
+\\
+O_{z}^{(c)}\left(x_{F}, x_{B}\right)&=\exp \left(-\| C_{z}-\left(\hat{\alpha}_{z} C_{x_{P}}+\left(1-\hat{\alpha}_{z}\right) C_{x_{B}}\right)\right)\left\|_{2}\right)
+\\
+O_{z}^{(s)}\left(x_{F}, x_{B}\right)&=\exp \left(\frac{-\left\|S_{z}-S_{x_{F}}\right\|_{2}}{\frac{1}{\left|\Omega_{F}\right|} \sum_{x_{i} \in \Omega_{F}}\left\|S_{z}-S_{x_{i}}\right\|_{2}}\right) \times \exp \left(\frac{-\left\|S_{z}-S_{x_{B}}\right\|_{2}}{\frac{1}{\left|\Omega_{B}\right|} \sum_{x_{i} \in \Omega_{B}}\left\|S_{z}-S_{x_{i}}\right\|_{2}}\right)
+\end{aligned} %]]></script>
 
 <blockquote>
   <p>是不是头都要炸了？哈哈哈<br />
 静下心来，其实很简单<br />
 第二个公式的意思就是用算出来的 alpha、B 和 F<br />
-反过来求 I‘ ，看看这个 I’ 的颜色有多大变化，变化越小越好<br />
+反过来求 I’ ，看看这个 I’ 的颜色有多大变化，变化越小越好<br />
 第三个公式的意思就是 F 和 B 应该是所有样本里距离最近的<br />
 第一个公式就是这两者的叉乘，两者一起评估<br /></p>
 </blockquote>
@@ -480,6 +481,10 @@ return C, i
                         <a href="/2019/04/09/Hello-World/" data-toggle="tooltip" data-placement="top" title="Hello World!">&larr; Previous Post</a>
                     </li>
                     
+                    
+                    <li class="next">
+                        <a href="/2019/04/21/ToPDMS/" data-toggle="tooltip" data-placement="top" title="Thoughts on PDMS">Next Post &rarr;</a>
+                    </li>
                     
                 </ul>
 
@@ -527,7 +532,7 @@ return C, i
                             
         				
                             
-                				<a href="/tags/#CV" title="CV" rel="1">
+                				<a href="/tags/#CV" title="CV" rel="2">
                                     CV
                                 </a>
                             
