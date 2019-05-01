@@ -5,9 +5,47 @@
     <description>THE MOI'S WORLD</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Fri, 26 Apr 2019 14:23:46 +0000</pubDate>
-    <lastBuildDate>Fri, 26 Apr 2019 14:23:46 +0000</lastBuildDate>
+    <pubDate>Wed, 01 May 2019 12:28:09 +0000</pubDate>
+    <lastBuildDate>Wed, 01 May 2019 12:28:09 +0000</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
+    
+      <item>
+        <title>NSGA-II</title>
+        <description>&lt;h2 id=&quot;首先&quot;&gt;首先&lt;/h2&gt;
+
+&lt;p&gt;这两周其实都在为实现 &lt;strong&gt;GP-MILP-LS&lt;/strong&gt; 而抓脑袋。但他涉及到太多我不懂的知识了，一时半会是无法实现了。不能吊死在这个问题上，所以之后的一段时间还是会回归抠图问题的学习上。 &lt;br /&gt;
+&lt;strong&gt;GP-MILP-LS&lt;/strong&gt; 中涉及到了很多经典的方法，比如 &lt;strong&gt;NSGA-II&lt;/strong&gt;。所以先实现一下经典算法，等基础厚实一点再去合成。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;遗传算法&quot;&gt;遗传算法&lt;/h2&gt;
+
+&lt;p&gt;首先要介绍的就是「&lt;strong&gt;遗传算法&lt;/strong&gt;」(&lt;strong&gt;Genetic Algoritm&lt;/strong&gt;)，简称&lt;code class=&quot;highlighter-rouge&quot;&gt;GA&lt;/code&gt;。&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;nsga-ii-大致思路&quot;&gt;NSGA-II 大致思路&lt;/h2&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;非支配排序&quot;&gt;非支配排序&lt;/h2&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;拥挤排序&quot;&gt;拥挤排序&lt;/h2&gt;
+
+&lt;hr /&gt;
+&lt;h2 id=&quot;最后&quot;&gt;最后&lt;/h2&gt;
+</description>
+        <pubDate>Wed, 01 May 2019 00:00:00 +0000</pubDate>
+        <link>http://localhost:4000/2019/05/01/NSGA-II/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/05/01/NSGA-II/</guid>
+        
+        <category>GA</category>
+        
+        <category>MOP</category>
+        
+        <category>Reading</category>
+        
+        
+      </item>
     
       <item>
         <title>Thoughts on PDMS</title>
