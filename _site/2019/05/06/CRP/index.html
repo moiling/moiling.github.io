@@ -10,9 +10,9 @@
     <meta name="keyword"  content="">
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <title>NSGA-II - MOI</title>
+    <title>CRP - MOI</title>
 
-    <link rel="canonical" href="http://localhost:4000/2019/05/01/NSGA-II/">
+    <link rel="canonical" href="http://localhost:4000/2019/05/06/CRP/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -144,19 +144,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#GA" title="GA">GA</a>
-                        
-                        <a class="tag" href="/tags/#MOP" title="MOP">MOP</a>
-                        
-                        <a class="tag" href="/tags/#Reading" title="Reading">Reading</a>
+                        <a class="tag" href="/tags/#Algorithm" title="Algorithm">Algorithm</a>
                         
                     </div>
-                    <h1>NSGA-II</h1>
+                    <h1>CRP</h1>
                     
                     
-                    <h2 class="subheading">A fast and elitist multi-objective genetic algoritm:NSGA -II.</h2>
+                    <h2 class="subheading">Carnival Route Programming - 游乐园路径规划</h2>
                     
-                    <span class="meta">Posted by moiling on May 1, 2019</span>
+                    <span class="meta">Posted by moiling on May 6, 2019</span>
                 </div>
             </div>
         </div>
@@ -174,28 +170,177 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h2 id="首先">首先</h2>
+				<h1 id="crp">CRP</h1>
 
-<p>这两周其实都在为实现 <strong>GP-MILP-LS</strong> 而抓脑袋。但他涉及到太多我不懂的知识了，一时半会是无法实现了。不能吊死在这个问题上，所以之后的一段时间还是会回归抠图问题的学习上。 <br />
-<strong>GP-MILP-LS</strong> 中涉及到了很多经典的方法，比如 <strong>NSGA-II</strong>。所以先实现一下经典算法，等基础厚实一点再去合成。</p>
+<p>Carnival Route Programming - 游乐园路径规划</p>
 
-<hr />
-<h2 id="遗传算法">遗传算法</h2>
+<h3 id="问题描述">问题描述</h3>
 
-<p>首先要介绍的就是「<strong>遗传算法</strong>」(<strong>Genetic Algoritm</strong>)，简称<code class="highlighter-rouge">GA</code>。<br />
-<br /></p>
+<p>游乐园每天会开放多个游玩项目，每个项目的开放时间段和游玩所需时间（包括排队等待的时间）都不同。设游客游玩<script type="math/tex">n</script>个项目，每个项目的游玩所需时间为<script type="math/tex">N_{p_i}</script>，开放开始时间为<script type="math/tex">S_{p_i}</script>，开放结束时间为<script type="math/tex">E_{p_i}</script>，从项目<script type="math/tex">p_i</script>移动到项目<script type="math/tex">p_j</script>的路程所需时间为<script type="math/tex">T_{p_ip_j}</script>，其中<script type="math/tex">p_i,p_j\in[1,2,\ldots,n]</script>为游玩项目，<script type="math/tex">p_i=p_j=0</script>为游乐园大门。要求规划一个项目游玩顺序，使得游客在规定开放时间段游玩所有项目，并且总游玩时间最短。即求下列问题：</p>
 
-<hr />
-<h2 id="nsga-ii-大致思路">NSGA-II 大致思路</h2>
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned}G(x) &=g_1(x)+g_2(x)&&\ldots\ldots(1)\\g_{1}(x) &=\sum_{j=1}^nT_{p_{j-1}p_{j}} &&\ldots\ldots(2)\\ g_{2}(x) &=\sum_{j=1}^n\max (S_{p_{j}}-A_{p_{j}},0)&&\ldots\ldots(3)\end{aligned} %]]></script>
 
-<hr />
-<h2 id="非支配排序">非支配排序</h2>
+<p>其中<script type="math/tex">x</script>为一个从游乐园大门开始的项目序列<script type="math/tex">x=(p_0,p_1,\ldots,p_n)</script> ，<script type="math/tex">A_{p_j}</script>为游客真实到达项目<script type="math/tex">p_j</script>的时间。<script type="math/tex">(2)</script>式表示在项目序列<script type="math/tex">x</script>下路程所需的总时间，<script type="math/tex">(3)</script>式表示在项目序列<script type="math/tex">x</script>下的总等待时间<script type="math/tex">^1</script> ，<script type="math/tex">(1)</script>式为路程和等待的总时间。由于游玩所需的时间固定不变，所以在这个问题中只需要考虑最小化<script type="math/tex">(1)</script>式即可，目标函数如下：</p>
 
-<hr />
-<h2 id="拥挤排序">拥挤排序</h2>
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{aligned}&\min G(x)&&&&&&\ldots\ldots(4)\end{aligned} %]]></script>
 
-<hr />
-<h2 id="最后">最后</h2>
+<blockquote>
+  <p>注1：这里的等待时间并非排队等待时间，而是指游客到达了项目位置，而项目还没到开放开始时间，从而产生的等待时间。</p>
+</blockquote>
+
+<h3 id="问题分解">问题分解</h3>
+
+<p>该问题可以看作一个基础问题附加上一定约束条件。其中基础问题为在完全图中给定一个起点，求一条最短通路，约束条件即为访问点的时间必须在规定范围之内。首先对于基础问题的求解十分简单，可以使用<strong>贪心算法</strong>每次向离当前点最近的点前进。该过程可以使用伪码描述如算法1所示。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法1：使用贪心算法求解基础问题 
+
+输入：T (每条道路所需的时间)
+	 N (游玩项目总数)
+输出：X (最优游玩序列)
+
+ 1: U ← {1,...,n}
+ 2: X ← ∅
+ 3: i ← 0
+ 4: for 1 to N do
+ 5:     for j in U do
+ 6:         m ← min(T[i][j],T[i][m])
+ 7:     end for
+ 8:     X ← X ∪ m
+ 9:	    i ← m
+10: end for
+11: return X
+</code></pre></div></div>
+
+<p>基础问题得到了最快的路径，它并不一定能满足时间段要求。但给出了一个启示，即每次寻找的点应为满足时间段要求的最近点。由于满足时间段要求是根据每次选择动态变化的，没有办法一开始就知道选择这个点是否可行，此时我们可以用到<strong>回溯算法</strong>。核心思想为每次选择的时候将临近点按照<script type="math/tex">(1)</script>式规定的总时间逆序排序，首先选择最近的点开始下一次选择，直到发生时间冲突，回溯到上一次选择中，选择次近的点继续选择，一直循环直到找到一条满足时间段要求的通路，该过程可使用如算法2描述的伪代码实现。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法2：使用回溯算法求解带时间段条件的路径规划问题
+
+输入：T (每条道路所需的时间)
+	 N (游玩项目总数)
+输出：X (最优游玩序列)
+
+ 1: U ← {1,...,n}
+ 2: i ← 0
+ 3: A[i] ← 0
+ 4: X ← reverse(recall(i,U))
+ 5: return X
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法3：recall 使用回溯算法求解带时间段条件的路径规划问题中的递归函数
+
+输入：i (当前访问的项目下标)
+	 U (未访问序列)
+输出：c (是否发生冲突)
+     X (当前递归排序完毕的项目序列)
+
+ 1: c ← False
+ 2: X ← ∅
+ 3: if is_conflict then
+ 4:     return True,∅
+ 5: U ← time_sort(U)
+ 6: for j in U do
+ 7:     A[j] ← compute_arrive_time(i,j)
+ 8:     U ← U - j
+ 9:     c,X ← recall(j,U)
+10:     if not c then
+11:         break
+12:     end if
+13:     U ← U + j
+14: end for
+15: if c then
+16:     return True,∅
+17: end if
+18: X ← X ∪ i
+19: return Flase,X
+</code></pre></div></div>
+
+<p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^4)</script>，平均为<script type="math/tex">O(n^4)</script>。</p>
+
+<h3 id="优化">优化</h3>
+
+<p>回溯算法解决该问题有两个很大的缺点，其一是每次都要从整个未访问的点中求解，其中很多点是明显不能优先访问的，其二是冲突的反应太慢，直到剩下的所有点都不能走的时候才发现冲突，此时可能需要回溯很多次才能找到错误的根源。因此，提出一个按优先级排序的快冲突响应算法（PSFCR）。</p>
+
+<p>PSFCR算法核心思路是在每次递归计算前建立节点之间的支配关系，将非支配的点参与计算。此处的支配关系<script type="math/tex">a</script>支配<script type="math/tex">b</script>表示，如果<script type="math/tex">b</script>在<script type="math/tex">a</script>之前访问，<script type="math/tex">a</script>就无法满足时间段要求。而且在计算支配关系的时候，若发现<script type="math/tex">a</script>和<script type="math/tex">b</script>互相支配，则证明当前选择的节点无论怎么继续走都会发生冲突，即找到了一种可以只需要试探一次就能发现冲突的快冲突响应方法，PSFCR算法可以使用伪码描述为算法4。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法4：PSFCR 按优先级排序的快冲突响应算法
+
+输入：T (每条道路所需的时间)
+	 N (游玩项目总数)
+输出：X (最优游玩序列)
+
+ 1: U ← {1,...,n}
+ 2: i ← 0
+ 3: A[i] ← 0
+ 4: c,F ← non_domination_sort(i,U)
+ 5: if c then
+ 6:     return ∅
+ 4: X ← reverse(PSFCR_recall(i,U,F))
+ 5: return X
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法5：non_domination_sort 非支配排序算法
+
+输入：i (当前访问的项目下标)
+	 U (未访问序列)
+输出：c (是否发生冲突)
+     F (非支配的项目序列)
+ 
+ 1: F ← ∅
+ 2: d ← {0,...,0}
+ 3: for i in range(0,len(U))
+ 4:     for j in range(i+1,len(U))
+ 5:         if i ≺ j then // means i dominate j
+ 6:             d[i]++
+ 7:         elseif j ≺ i then
+ 8:		        d[j]++
+ 9:         end if
+10:         if i ≺ j and j ≺ i then
+11:             return True,∅
+12:         end if
+13:		end for
+14: end for
+15: for i in U
+16:     if d[i]=0 then
+17:		    F ← F ∪ i
+18: F ← time_sort(F)
+19: return False,F
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法6：PSFCR_recall PSFCR中的递归函数
+
+输入：i (当前访问的项目下标)
+	 U (未访问序列)
+	 F (非支配的项目序列)
+输出：c (是否发生冲突)
+     X (当前递归排序完毕的项目序列)
+
+ 1: c ← False
+ 2: X ← ∅
+ 3: if F=∅ and U≠∅ then
+ 4:     return True,∅
+ 5: for j in U do
+ 6:     A[j] ← compute_arrive_time(i,j)
+ 7:     c,F ← non_domination_sort(i,U)
+ 8:     if c then
+ 9:        continue
+10:     end if
+11:     U ← U - j
+12:     c,X ← PSFCR_recall(j,U,F)
+13:     if not c then
+14:         break
+15:     end if
+16:     U ← U + j
+17: end for
+18: if c then
+19:     return True,∅
+20: end if
+21: X ← X ∪ i
+22: return Flase,X
+</code></pre></div></div>
+
+<p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^3)</script>，平均为<script type="math/tex">O(n^3)</script>。</p>
 
 
                 <hr>
@@ -206,13 +351,9 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2019/04/21/ToPDMS/" data-toggle="tooltip" data-placement="top" title="Thoughts on PDMS">&larr; Previous Post</a>
+                        <a href="/2019/05/01/NSGA-II/" data-toggle="tooltip" data-placement="top" title="NSGA-II">&larr; Previous Post</a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2019/05/06/CRP/" data-toggle="tooltip" data-placement="top" title="CRP">Next Post &rarr;</a>
-                    </li>
                     
                 </ul>
 
