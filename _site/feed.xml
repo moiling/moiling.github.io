@@ -5,8 +5,8 @@
     <description>THE MOI'S WORLD</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 06 May 2019 14:17:02 +0000</pubDate>
-    <lastBuildDate>Mon, 06 May 2019 14:17:02 +0000</lastBuildDate>
+    <pubDate>Sat, 18 May 2019 05:47:08 +0000</pubDate>
+    <lastBuildDate>Sat, 18 May 2019 05:47:08 +0000</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
@@ -33,7 +33,7 @@
 
 &lt;h3 id=&quot;问题分解&quot;&gt;问题分解&lt;/h3&gt;
 
-&lt;p&gt;该问题可以看作一个基础问题附加上一定约束条件。其中基础问题为在完全图中给定一个起点，求一条最短通路，约束条件即为访问点的时间必须在规定范围之内。首先对于基础问题的求解十分简单，可以使用&lt;strong&gt;贪心算法&lt;/strong&gt;每次向离当前点最近的点前进。该过程可以使用伪码描述如算法1所示。&lt;/p&gt;
+&lt;p&gt;该问题可以看作一个基础问题附加上一定约束条件。其中基础问题为在完全图中给定一个起点，求一条最短通路，约束条件即为访问点的时间必须在规定范围之内。首先对于基础问题的求解十分简单，可以使用&lt;strong&gt;贪心算法&lt;/strong&gt;每次向离当前点最近的点前进（先不急反驳）。该过程可以使用伪码描述如算法1所示。&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;算法1：使用贪心算法求解基础问题 
 
@@ -97,7 +97,7 @@
 19: return Flase,X
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;经计算，时间复杂度最好为&lt;script type=&quot;math/tex&quot;&gt;O(n^3)&lt;/script&gt;，最差为&lt;script type=&quot;math/tex&quot;&gt;O(n^4)&lt;/script&gt;，平均为&lt;script type=&quot;math/tex&quot;&gt;O(n^4)&lt;/script&gt;。&lt;/p&gt;
+&lt;p&gt;经计算，时间复杂度最好为&lt;script type=&quot;math/tex&quot;&gt;O(n^3)&lt;/script&gt;，最差为&lt;script type=&quot;math/tex&quot;&gt;O(n^{n+2})&lt;/script&gt;，平均为&lt;script type=&quot;math/tex&quot;&gt;O(n^{\frac{n}{2} + 2})&lt;/script&gt;。&lt;/p&gt;
 
 &lt;h3 id=&quot;优化&quot;&gt;优化&lt;/h3&gt;
 
@@ -182,6 +182,34 @@
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;经计算，时间复杂度最好为&lt;script type=&quot;math/tex&quot;&gt;O(n^3)&lt;/script&gt;，最差为&lt;script type=&quot;math/tex&quot;&gt;O(n^3)&lt;/script&gt;，平均为&lt;script type=&quot;math/tex&quot;&gt;O(n^3)&lt;/script&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;进一步优化&quot;&gt;进一步优化&lt;/h3&gt;
+
+&lt;p&gt;这里要推翻一下最开始的假设了。细心的朋友可能会发现我之前根本是在胡说八道，没错，基础问题用贪心算法求出来的解并不是最优解，只是一个比较好的可行解而已。具体如下图所示。&lt;/p&gt;
+
+&lt;p&gt;[图：贪心失败]&lt;/p&gt;
+
+&lt;p&gt;这个问题主要出在&lt;strong&gt;区域选择&lt;/strong&gt;上，贪心算法有可能会先走到一个游玩项目比较偏远的区域，导致回到其他区域时花费异常大的时间。如果还要按照之前的方法，就需要穷举出所有的可行解。当然因为需要所有可行解，那么每个节点的排序操作就可以省略了，经计算无PSFCR时间复杂度为&lt;script type=&quot;math/tex&quot;&gt;O(n^n)&lt;/script&gt;，有PSFCR时间复杂度为&lt;script type=&quot;math/tex&quot;&gt;O(n^3l)&lt;/script&gt;，其中&lt;script type=&quot;math/tex&quot;&gt;n&lt;/script&gt;为结点个数，&lt;script type=&quot;math/tex&quot;&gt;l&lt;/script&gt;为可行解数目。当&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+l&lt;(n-2)! %]]&gt;&lt;/script&gt;时，有PSFCR的方法更优。即，可行解越少（约束越强）PSFCR算法越好。&lt;/p&gt;
+
+&lt;p&gt;这样确实可以求出最优解，但是在可行解偏多的情况下速度很不理想。由于其本身是一个NP问题，故应该找到一个符合时间约束的较优解即可。使用贪心算法的PSFCR就给出了一个较优解，再次基础之上，添加&lt;strong&gt;区域选择算法&lt;/strong&gt;（AS），使算法获得更为优秀的可行解。要进行区域选择，首先要进行&lt;strong&gt;区域划分&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;h4 id=&quot;区域划分&quot;&gt;区域划分&lt;/h4&gt;
+
+&lt;p&gt;假设线段&lt;script type=&quot;math/tex&quot;&gt;AB&lt;/script&gt;长度等于线段&lt;script type=&quot;math/tex&quot;&gt;AC&lt;/script&gt;长度，&lt;script type=&quot;math/tex&quot;&gt;\angle A&lt;/script&gt;小于60°时，&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+CB&lt;AB=AC %]]&gt;&lt;/script&gt;，而&lt;script type=&quot;math/tex&quot;&gt;\angle A&lt;/script&gt;大于60°时，&lt;script type=&quot;math/tex&quot;&gt;CB&gt;AB=AC&lt;/script&gt;。故使用60°作为一个分界值。假设当前所在点为点&lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt;，任意点&lt;script type=&quot;math/tex&quot;&gt;X\in\{A_1\}&lt;/script&gt;与&lt;script type=&quot;math/tex&quot;&gt;Y\in \{A_2\}&lt;/script&gt;，使得&lt;script type=&quot;math/tex&quot;&gt;\angle XAY &gt; 60°&lt;/script&gt;，即&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+\frac{XA\cdot YA}{\lvert XA\rvert\lvert YA\rvert}&lt;\cos 60°=\frac{1}{2} %]]&gt;&lt;/script&gt;，则&lt;script type=&quot;math/tex&quot;&gt;A_1&lt;/script&gt;与&lt;script type=&quot;math/tex&quot;&gt;A_2&lt;/script&gt;属于不同的区域，反之属于相同区域。&lt;/p&gt;
+
+&lt;p&gt;[图：60°区域划分]&lt;/p&gt;
+
+&lt;h4 id=&quot;区域选择&quot;&gt;区域选择&lt;/h4&gt;
+
+&lt;p&gt;如果还是需要求出最优解，在划分区域后，可以将PSFCR的支配解按照区域分成一个二维数组。一个区域间算出可行解后，即可跳过整个区间，到下一个区间进行搜索。此时PSFCR-AS的时间复杂度为&lt;script type=&quot;math/tex&quot;&gt;O(n^3a)&lt;/script&gt;，其中&lt;script type=&quot;math/tex&quot;&gt;a&lt;/script&gt;为总区域数，并有&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+a&lt;&lt;l %]]&gt;&lt;/script&gt;。由此可见区域划分极大提升了算法效率。&lt;/p&gt;
+
+&lt;p&gt;但由于该算法用于一个即时交互系统，只需要求出一个较优解即可。为了使得时间复杂度变为&lt;script type=&quot;math/tex&quot;&gt;O(n^3)&lt;/script&gt;，就需要人为决定区域之间的访问顺序。目前可以根据&lt;strong&gt;平均距离&lt;/strong&gt;或&lt;strong&gt;最远距离&lt;/strong&gt;来判断访问顺序。为了减少回头路的长度，应该优先选择距离较近的区域访问。但平均距离和最远距离都只能解决部分情况，依概率，平均距离可以解决的情况更多。故我们选择先访问平均距离最短的区域。该算法只能求出较优解，伪码如下。&lt;/p&gt;
+
+&lt;p&gt;[PSFCR-AS/AD伪码]&lt;/p&gt;
 </description>
         <pubDate>Mon, 06 May 2019 00:00:00 +0000</pubDate>
         <link>http://localhost:4000/2019/05/06/CRP/</link>

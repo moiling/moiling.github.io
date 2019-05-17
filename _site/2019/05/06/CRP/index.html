@@ -192,7 +192,7 @@
 
 <h3 id="问题分解">问题分解</h3>
 
-<p>该问题可以看作一个基础问题附加上一定约束条件。其中基础问题为在完全图中给定一个起点，求一条最短通路，约束条件即为访问点的时间必须在规定范围之内。首先对于基础问题的求解十分简单，可以使用<strong>贪心算法</strong>每次向离当前点最近的点前进。该过程可以使用伪码描述如算法1所示。</p>
+<p>该问题可以看作一个基础问题附加上一定约束条件。其中基础问题为在完全图中给定一个起点，求一条最短通路，约束条件即为访问点的时间必须在规定范围之内。首先对于基础问题的求解十分简单，可以使用<strong>贪心算法</strong>每次向离当前点最近的点前进（先不急反驳）。该过程可以使用伪码描述如算法1所示。</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法1：使用贪心算法求解基础问题 
 
@@ -256,7 +256,7 @@
 19: return Flase,X
 </code></pre></div></div>
 
-<p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^4)</script>，平均为<script type="math/tex">O(n^4)</script>。</p>
+<p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^{n+2})</script>，平均为<script type="math/tex">O(n^{\frac{n}{2} + 2})</script>。</p>
 
 <h3 id="优化">优化</h3>
 
@@ -341,6 +341,34 @@
 </code></pre></div></div>
 
 <p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^3)</script>，平均为<script type="math/tex">O(n^3)</script>。</p>
+
+<h3 id="进一步优化">进一步优化</h3>
+
+<p>这里要推翻一下最开始的假设了。细心的朋友可能会发现我之前根本是在胡说八道，没错，基础问题用贪心算法求出来的解并不是最优解，只是一个比较好的可行解而已。具体如下图所示。</p>
+
+<p>[图：贪心失败]</p>
+
+<p>这个问题主要出在<strong>区域选择</strong>上，贪心算法有可能会先走到一个游玩项目比较偏远的区域，导致回到其他区域时花费异常大的时间。如果还要按照之前的方法，就需要穷举出所有的可行解。当然因为需要所有可行解，那么每个节点的排序操作就可以省略了，经计算无PSFCR时间复杂度为<script type="math/tex">O(n^n)</script>，有PSFCR时间复杂度为<script type="math/tex">O(n^3l)</script>，其中<script type="math/tex">n</script>为结点个数，<script type="math/tex">l</script>为可行解数目。当<script type="math/tex">% <![CDATA[
+l<(n-2)! %]]></script>时，有PSFCR的方法更优。即，可行解越少（约束越强）PSFCR算法越好。</p>
+
+<p>这样确实可以求出最优解，但是在可行解偏多的情况下速度很不理想。由于其本身是一个NP问题，故应该找到一个符合时间约束的较优解即可。使用贪心算法的PSFCR就给出了一个较优解，再次基础之上，添加<strong>区域选择算法</strong>（AS），使算法获得更为优秀的可行解。要进行区域选择，首先要进行<strong>区域划分</strong>。</p>
+
+<h4 id="区域划分">区域划分</h4>
+
+<p>假设线段<script type="math/tex">AB</script>长度等于线段<script type="math/tex">AC</script>长度，<script type="math/tex">\angle A</script>小于60°时，<script type="math/tex">% <![CDATA[
+CB<AB=AC %]]></script>，而<script type="math/tex">\angle A</script>大于60°时，<script type="math/tex">CB>AB=AC</script>。故使用60°作为一个分界值。假设当前所在点为点<script type="math/tex">A</script>，任意点<script type="math/tex">X\in\{A_1\}</script>与<script type="math/tex">Y\in \{A_2\}</script>，使得<script type="math/tex">\angle XAY > 60°</script>，即<script type="math/tex">% <![CDATA[
+\frac{XA\cdot YA}{\lvert XA\rvert\lvert YA\rvert}<\cos 60°=\frac{1}{2} %]]></script>，则<script type="math/tex">A_1</script>与<script type="math/tex">A_2</script>属于不同的区域，反之属于相同区域。</p>
+
+<p>[图：60°区域划分]</p>
+
+<h4 id="区域选择">区域选择</h4>
+
+<p>如果还是需要求出最优解，在划分区域后，可以将PSFCR的支配解按照区域分成一个二维数组。一个区域间算出可行解后，即可跳过整个区间，到下一个区间进行搜索。此时PSFCR-AS的时间复杂度为<script type="math/tex">O(n^3a)</script>，其中<script type="math/tex">a</script>为总区域数，并有<script type="math/tex">% <![CDATA[
+a<<l %]]></script>。由此可见区域划分极大提升了算法效率。</p>
+
+<p>但由于该算法用于一个即时交互系统，只需要求出一个较优解即可。为了使得时间复杂度变为<script type="math/tex">O(n^3)</script>，就需要人为决定区域之间的访问顺序。目前可以根据<strong>平均距离</strong>或<strong>最远距离</strong>来判断访问顺序。为了减少回头路的长度，应该优先选择距离较近的区域访问。但平均距离和最远距离都只能解决部分情况，依概率，平均距离可以解决的情况更多。故我们选择先访问平均距离最短的区域。该算法只能求出较优解，伪码如下。</p>
+
+<p>[PSFCR-AS/AD伪码]</p>
 
 
                 <hr>
