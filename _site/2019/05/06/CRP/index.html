@@ -346,7 +346,7 @@
 
 <p>这里要推翻一下最开始的假设了。细心的朋友可能会发现我之前根本是在胡说八道，没错，基础问题用贪心算法求出来的解并不是最优解，只是一个比较好的可行解而已。具体如下图所示。</p>
 
-<p>[图：贪心失败]</p>
+<p><img src="/img/in-post/CRP-20190506/01.png" alt="贪心失败" /></p>
 
 <p>这个问题主要出在<strong>区域选择</strong>上，贪心算法有可能会先走到一个游玩项目比较偏远的区域，导致回到其他区域时花费异常大的时间。如果还要按照之前的方法，就需要穷举出所有的可行解。当然因为需要所有可行解，那么每个节点的排序操作就可以省略了，经计算无PSFCR时间复杂度为<script type="math/tex">O(n^n)</script>，有PSFCR时间复杂度为<script type="math/tex">O(n^3l)</script>，其中<script type="math/tex">n</script>为结点个数，<script type="math/tex">l</script>为可行解数目。当<script type="math/tex">% <![CDATA[
 l<(n-2)! %]]></script>时，有PSFCR的方法更优。即，可行解越少（约束越强）PSFCR算法越好。</p>
@@ -359,7 +359,7 @@ l<(n-2)! %]]></script>时，有PSFCR的方法更优。即，可行解越少（�
 CB<AB=AC %]]></script>，而<script type="math/tex">\angle A</script>大于60°时，<script type="math/tex">CB>AB=AC</script>。故使用60°作为一个分界值。假设当前所在点为点<script type="math/tex">A</script>，任意点<script type="math/tex">X\in\{A_1\}</script>与<script type="math/tex">Y\in \{A_2\}</script>，使得<script type="math/tex">\angle XAY > 60°</script>，即<script type="math/tex">% <![CDATA[
 \frac{XA\cdot YA}{\lvert XA\rvert\lvert YA\rvert}<\cos 60°=\frac{1}{2} %]]></script>，则<script type="math/tex">A_1</script>与<script type="math/tex">A_2</script>属于不同的区域，反之属于相同区域。</p>
 
-<p>[图：60°区域划分]</p>
+<p><img src="/img/in-post/CRP-20190506/02.png" alt="60°区域划分" /></p>
 
 <h4 id="区域选择">区域选择</h4>
 

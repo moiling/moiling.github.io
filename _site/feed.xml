@@ -5,8 +5,8 @@
     <description>THE MOI'S WORLD</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 18 May 2019 05:47:08 +0000</pubDate>
-    <lastBuildDate>Sat, 18 May 2019 05:47:08 +0000</lastBuildDate>
+    <pubDate>Sat, 18 May 2019 06:33:22 +0000</pubDate>
+    <lastBuildDate>Sat, 18 May 2019 06:33:22 +0000</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
@@ -187,7 +187,7 @@
 
 &lt;p&gt;这里要推翻一下最开始的假设了。细心的朋友可能会发现我之前根本是在胡说八道，没错，基础问题用贪心算法求出来的解并不是最优解，只是一个比较好的可行解而已。具体如下图所示。&lt;/p&gt;
 
-&lt;p&gt;[图：贪心失败]&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/CRP-20190506/01.png&quot; alt=&quot;贪心失败&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;这个问题主要出在&lt;strong&gt;区域选择&lt;/strong&gt;上，贪心算法有可能会先走到一个游玩项目比较偏远的区域，导致回到其他区域时花费异常大的时间。如果还要按照之前的方法，就需要穷举出所有的可行解。当然因为需要所有可行解，那么每个节点的排序操作就可以省略了，经计算无PSFCR时间复杂度为&lt;script type=&quot;math/tex&quot;&gt;O(n^n)&lt;/script&gt;，有PSFCR时间复杂度为&lt;script type=&quot;math/tex&quot;&gt;O(n^3l)&lt;/script&gt;，其中&lt;script type=&quot;math/tex&quot;&gt;n&lt;/script&gt;为结点个数，&lt;script type=&quot;math/tex&quot;&gt;l&lt;/script&gt;为可行解数目。当&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
 l&lt;(n-2)! %]]&gt;&lt;/script&gt;时，有PSFCR的方法更优。即，可行解越少（约束越强）PSFCR算法越好。&lt;/p&gt;
@@ -200,7 +200,7 @@ l&lt;(n-2)! %]]&gt;&lt;/script&gt;时，有PSFCR的方法更优。即，可行�
 CB&lt;AB=AC %]]&gt;&lt;/script&gt;，而&lt;script type=&quot;math/tex&quot;&gt;\angle A&lt;/script&gt;大于60°时，&lt;script type=&quot;math/tex&quot;&gt;CB&gt;AB=AC&lt;/script&gt;。故使用60°作为一个分界值。假设当前所在点为点&lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt;，任意点&lt;script type=&quot;math/tex&quot;&gt;X\in\{A_1\}&lt;/script&gt;与&lt;script type=&quot;math/tex&quot;&gt;Y\in \{A_2\}&lt;/script&gt;，使得&lt;script type=&quot;math/tex&quot;&gt;\angle XAY &gt; 60°&lt;/script&gt;，即&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
 \frac{XA\cdot YA}{\lvert XA\rvert\lvert YA\rvert}&lt;\cos 60°=\frac{1}{2} %]]&gt;&lt;/script&gt;，则&lt;script type=&quot;math/tex&quot;&gt;A_1&lt;/script&gt;与&lt;script type=&quot;math/tex&quot;&gt;A_2&lt;/script&gt;属于不同的区域，反之属于相同区域。&lt;/p&gt;
 
-&lt;p&gt;[图：60°区域划分]&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/CRP-20190506/02.png&quot; alt=&quot;60°区域划分&quot; /&gt;&lt;/p&gt;
 
 &lt;h4 id=&quot;区域选择&quot;&gt;区域选择&lt;/h4&gt;
 
