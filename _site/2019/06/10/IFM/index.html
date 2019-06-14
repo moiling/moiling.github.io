@@ -10,9 +10,9 @@
     <meta name="keyword"  content="">
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <title>CRP - MOI</title>
+    <title>Reimplementation of Information Flow Matting - MOI</title>
 
-    <link rel="canonical" href="http://localhost:4000/2019/05/06/CRP/">
+    <link rel="canonical" href="http://localhost:4000/2019/06/10/IFM/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -144,15 +144,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#Algorithm" title="Algorithm">Algorithm</a>
+                        <a class="tag" href="/tags/#CV" title="CV">CV</a>
                         
                     </div>
-                    <h1>CRP</h1>
+                    <h1>Reimplementation of Information Flow Matting</h1>
                     
                     
-                    <h2 class="subheading">Carnival Route Programming - 游乐园路径规划</h2>
+                    <h2 class="subheading">记一篇论文的复现</h2>
                     
-                    <span class="meta">Posted by moiling on May 6, 2019</span>
+                    <span class="meta">Posted by moiling on June 10, 2019</span>
                 </div>
             </div>
         </div>
@@ -170,205 +170,147 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h1 id="crp">CRP</h1>
+				<h1 id="information-flow-matting">Information Flow Matting</h1>
 
-<p>Carnival Route Programming - 游乐园路径规划</p>
+<p>来除草了，最近都在做一些杂事，就记一篇最近复现论文的工作和一些思考吧。其实是实验报告……最近没太多时间用于记录，需要学习的内容实在太多了，等有一定积累的时候再来吧！不然记录的东西都是错误的也没什么价值。</p>
 
-<h3 id="问题描述">问题描述</h3>
+<h3 id="实验目的">实验目的</h3>
 
-<p>游乐园每天会开放多个游玩项目，每个项目的开放时间段和游玩所需时间（包括排队等待的时间）都不同。设游客游玩<script type="math/tex">n</script>个项目，每个项目的游玩所需时间为<script type="math/tex">N_{p_i}</script>，开放开始时间为<script type="math/tex">S_{p_i}</script>，开放结束时间为<script type="math/tex">E_{p_i}</script>，从项目<script type="math/tex">p_i</script>移动到项目<script type="math/tex">p_j</script>的路程所需时间为<script type="math/tex">T_{p_ip_j}</script>，其中<script type="math/tex">p_i,p_j\in[1,2,\ldots,n]</script>为游玩项目，<script type="math/tex">p_i=p_j=0</script>为游乐园大门。要求规划一个项目游玩顺序，使得游客在规定开放时间段游玩所有项目，并且总游玩时间最短。即求下列问题：</p>
+<p>复现 Aksoy 等人在论文《Designing Effective Inter-Pixel Information Flow for Natural Image Matting》中提出的基于传播的抠图算法。</p>
 
-<script type="math/tex; mode=display">% <![CDATA[
-\begin{aligned}G(x) &=g_1(x)+g_2(x)&&\ldots\ldots(1)\\g_{1}(x) &=\sum_{j=1}^nT_{p_{j-1}p_{j}} &&\ldots\ldots(2)\\ g_{2}(x) &=\sum_{j=1}^n\max (S_{p_{j}}-A_{p_{j}},0)&&\ldots\ldots(3)\end{aligned} %]]></script>
+<h3 id="实验原理">实验原理</h3>
 
-<p>其中<script type="math/tex">x</script>为一个从游乐园大门开始的项目序列<script type="math/tex">x=(p_0,p_1,\ldots,p_n)</script> ，<script type="math/tex">A_{p_j}</script>为游客真实到达项目<script type="math/tex">p_j</script>的时间。<script type="math/tex">(2)</script>式表示在项目序列<script type="math/tex">x</script>下路程所需的总时间，<script type="math/tex">(3)</script>式表示在项目序列<script type="math/tex">x</script>下的总等待时间<script type="math/tex">^1</script> ，<script type="math/tex">(1)</script>式为路程和等待的总时间。由于游玩所需的时间固定不变，所以在这个问题中只需要考虑最小化<script type="math/tex">(1)</script>式即可，目标函数如下：</p>
+<p>基于传播的抠图方法依据像素之间颜色和空间的相近性，将透明度从已知区域传播到未知区域。基于传播的抠图方法有局部和非局部两种。局部方法为每个未知点设置一个以它为中心的窗口，信息只通过该点对应的窗口中的点传播。非局部方法则通过未知点的颜色和空间信息寻 找几个邻近点，信息通过这几个邻近点传播，不限于局部窗口内。</p>
 
-<script type="math/tex; mode=display">% <![CDATA[
-\begin{aligned}&\min G(x)&&&&&&\ldots\ldots(4)\end{aligned} %]]></script>
+<p>该论文使用线性表达式将局部方法与非局部方法结合起来，其中局部方法使用了 Close-Form Matting 的算法，非局部方法则由作者设计，由三部分组成:颜色混合信息流、已知区域到未 知区域信息流、未知区域内部信息流。算法流程图如下图所示。其中各个信息流之间主要的差异在于邻近点的搜索空间不同，颜色混合信息流从全图中搜索，已知区域到未知区域信息流只从已知区域中搜索，未知区域内部信息流只从未知区域中搜索。</p>
 
-<blockquote>
-  <p>注1：这里的等待时间并非排队等待时间，而是指游客到达了项目位置，而项目还没到开放开始时间，从而产生的等待时间。</p>
-</blockquote>
+<p><img src="/img/in-post/IFM-20190610/01.png" alt="img_1 算法流程图" /></p>
 
-<h3 id="问题分解">问题分解</h3>
+<p>大致计算流程如下，首先在每个信息流中使用 K 邻近法(KNN)搜索邻近点，其中搜索使用的特征向量如表 1 所示。然后使用局部线形嵌入方法(LLE)求解公式(1)得到权重。最后将每个信息流线性组合成公式(2)，并使用预条件共轭梯度法(PCG)求出透明度。</p>
 
-<p>该问题可以看作一个基础问题附加上一定约束条件。其中基础问题为在完全图中给定一个起点，求一条最短通路，约束条件即为访问点的时间必须在规定范围之内。首先对于基础问题的求解十分简单，可以使用<strong>贪心算法</strong>每次向离当前点最近的点前进（先不急反驳）。该过程可以使用伪码描述如算法1所示。</p>
+<script type="math/tex; mode=display">(1): \underset{w_{p, q}}{\arg \min }\left\|\boldsymbol{c}_{\boldsymbol{p}}-\sum_{q \in \mathcal{N}_{p}} w_{p, q} \boldsymbol{c}_{\boldsymbol{q}}\right\|^{2}</script>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法1：使用贪心算法求解基础问题 
+<script type="math/tex; mode=display">(2): E_{1}=E_{C M}+\sigma_{\mathcal{k} \mathcal{u}} E_{\mathcal{k} \mathcal{u}}+\sigma_{\mathcal{u} \mathcal{u}} E_{\mathcal{u} \mathcal{u}}+\sigma_{L} E_{L}+\lambda E_{\mathcal{T}}</script>
 
-输入：T (每条道路所需的时间)
-	 N (游玩项目总数)
-输出：X (最优游玩序列)
+<p>公式(1)中<script type="math/tex">C</script>为点<script type="math/tex">p</script>的 RGB 颜色向量，<script type="math/tex">\mathcal{N}</script>为点<script type="math/tex">p</script>通过 KNN 获取的邻近点集合，该公式的作用为计算出点<script type="math/tex">p</script>邻近点的权重，这些权重可以使得邻近点加权组合成的颜色与点<script type="math/tex">p</script>的颜色相近，从而使用这些权重与邻近点的透明度计算出点<script type="math/tex">p</script>的透明度。公式(2)为每个信息流的线性组合，其 中<script type="math/tex">\sigma_{\mathcal{k} \mathcal{u}}</script>、<script type="math/tex">\sigma_{\mathcal{u} \mathcal{u}}</script>、<script type="math/tex">\sigma_{L}</script>、<script type="math/tex">\lambda</script>为参数，其取值下表所示，<script type="math/tex">E_{\mathcal{T}}</script>是为了保持三分图中的前景和背景信息不 被影响而附加的公式，<script type="math/tex">E_{C M}</script>如公式(3)所示，其余公式大同小异，不再赘述。</p>
 
- 1: U ← {1,...,n}
- 2: X ← ∅
- 3: i ← 0
- 4: for 1 to N do
- 5:     for j in U do
- 6:         m ← min(T[i][j],T[i][m])
- 7:     end for
- 8:     X ← X ∪ m
- 9:	    i ← m
-10: end for
-11: return X
-</code></pre></div></div>
+<script type="math/tex; mode=display">(3): E_{C M}=\sum_{p \in U}\left(\alpha_{p}-\sum_{q \in N_{p}^{C M}} w_{p, q}^{C M} \alpha_{q}\right)^{2}</script>
 
-<p>基础问题得到了最快的路径，它并不一定能满足时间段要求。但给出了一个启示，即每次寻找的点应为满足时间段要求的最近点。由于满足时间段要求是根据每次选择动态变化的，没有办法一开始就知道选择这个点是否可行，此时我们可以用到<strong>回溯算法</strong>。核心思想为每次选择的时候将临近点按照<script type="math/tex">(1)</script>式规定的总时间逆序排序，首先选择最近的点开始下一次选择，直到发生时间冲突，回溯到上一次选择中，选择次近的点继续选择，一直循环直到找到一条满足时间段要求的通路，该过程可使用如算法2描述的伪代码实现。</p>
+<p>公式(3)中<script type="math/tex">U</script>为未知区域的点集，该公式通过邻近点的权重和透明度计算未知点的透明度，之所以计算差值是因为论文中不止使用一种评估透明度的方法，如公式(2)所示，将这些评估的差值线性组合起来，使得总差值最小，从而计算最终的透明度。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法2：使用回溯算法求解带时间段条件的路径规划问题
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">参数名</th>
+      <th style="text-align: center">参数值</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">颜色混合信息流的搜索特征</td>
+      <td style="text-align: center">[𝑟, 𝑔, 𝑏, 𝑥, 𝑦]</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">已知到未知信息流的搜索特征</td>
+      <td style="text-align: center">[𝑟, 𝑔, 𝑏, 𝑥 × 10, 𝑦 × 10]</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">未知内部信息流的搜索特征</td>
+      <td style="text-align: center">[𝑟, 𝑔, 𝑏, 𝑥/20, y/20]</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">颜色混合信息流的邻近点个数 <script type="math/tex">K_{C M}</script></td>
+      <td style="text-align: center">20</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">已知到未知信息流的邻近点个数 <script type="math/tex">K_{\mathcal{k} \mathcal{u}}</script></td>
+      <td style="text-align: center">7</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">未知内部信息流的邻近点个数 <script type="math/tex">K_{\mathcal{u} \mathcal{u}}</script></td>
+      <td style="text-align: center">5</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">已知到未知信息流的混合系数 <script type="math/tex">\sigma_{\mathcal{k} \mathcal{u}}</script></td>
+      <td style="text-align: center">0.05</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">未知内部信息流的混合系数 <script type="math/tex">\sigma_{\mathcal{u} \mathcal{u}}</script></td>
+      <td style="text-align: center">0.01</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">局部信息流的混合系数 <script type="math/tex">\sigma_{L}</script></td>
+      <td style="text-align: center">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">保持三分图已知信息的混合系数 <script type="math/tex">\lambda</script></td>
+      <td style="text-align: center">100</td>
+    </tr>
+  </tbody>
+</table>
 
-输入：T (每条道路所需的时间)
-	 N (游玩项目总数)
-输出：X (最优游玩序列)
+<h3 id="实验步骤">实验步骤</h3>
 
- 1: U ← {1,...,n}
- 2: i ← 0
- 3: A[i] ← 0
- 4: X ← reverse(recall(i,U))
- 5: return X
-</code></pre></div></div>
+<p>1、寻找算法库
+由于该论文使用了很多已有的算法，且并没做详细说明，故在复现的开始先寻找提供了这些算法的第三方库。其中 KNN 算法使用了 SKLERAN 库中的 neighbors 模块，LLE 算法使用了 NUMPY 库中的 Linear Algebra Tools 模块，PCG 使用了 SCIPY 库中的 sparse 模块，局部信息流使用了一个开源的 Close-Form Matting 中的方法。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法3：recall 使用回溯算法求解带时间段条件的路径规划问题中的递归函数
+<p>2、实现非局部方法中的邻近点搜索功能
+由于 KNN 算法使用的是第三方库，所以该功能实现起来很简单。输入搜索区域和被搜索区域，用 KNN 算法搜索出邻近点即可。这里要注意的是 KNN 搜索的时候如果搜索区域和被搜索区域有重叠，那么最近的点一定是自身，需要将自身的点排除。</p>
 
-输入：i (当前访问的项目下标)
-	 U (未访问序列)
-输出：c (是否发生冲突)
-     X (当前递归排序完毕的项目序列)
+<p>3、实现计算权重的方法
+直接使用第三方的 LLE 算法计算公式(1)即可。</p>
 
- 1: c ← False
- 2: X ← ∅
- 3: if is_conflict then
- 4:     return True,∅
- 5: U ← time_sort(U)
- 6: for j in U do
- 7:     A[j] ← compute_arrive_time(i,j)
- 8:     U ← U - j
- 9:     c,X ← recall(j,U)
-10:     if not c then
-11:         break
-12:     end if
-13:     U ← U + j
-14: end for
-15: if c then
-16:     return True,∅
-17: end if
-18: X ← X ∪ i
-19: return Flase,X
-</code></pre></div></div>
+<p>4、实现各个信息流
+整个算法由四个信息流和最终的求解组成，其中三个非局部信息流的实现过程相似。首先读取图片和三分图的信息、加载算法需要的参数，然后通过三分图计算出背景区域、前景区域和未知区域，将这些区域和对应的参数交给邻近点搜索算法计算出临近点，最后通过计算权重的算法计算出每个信息流的权重即可。其中未知区域内部信息流的权重不是通过公式(1)计算 的，而是论文中的另一个简单公式，不需要使用 LLE 算法。其中局部信息流直接使用了开源的 Close-Form Matting 算法。</p>
 
-<p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^{n+2})</script>，平均为<script type="math/tex">O(n^{\frac{n}{2} + 2})</script>。</p>
+<p>5、实现透明度的求解
+将所有信息流求得的权重按照公式(2)组合起来，使用第三方库的 PCG 算法进行求解。</p>
 
-<h3 id="优化">优化</h3>
+<h3 id="实验结果与分析">实验结果与分析</h3>
 
-<p>回溯算法解决该问题有两个很大的缺点，其一是每次都要从整个未访问的点中求解，其中很多点是明显不能优先访问的，其二是冲突的反应太慢，直到剩下的所有点都不能走的时候才发现冲突，此时可能需要回溯很多次才能找到错误的根源。因此，提出一个按优先级排序的快冲突响应算法（PSFCR）。</p>
+<p>1、分步结果</p>
 
-<p>PSFCR算法核心思路是在每次递归计算前建立节点之间的支配关系，将非支配的点参与计算。此处的支配关系<script type="math/tex">a</script>支配<script type="math/tex">b</script>表示，如果<script type="math/tex">b</script>在<script type="math/tex">a</script>之前访问，<script type="math/tex">a</script>就无法满足时间段要求。而且在计算支配关系的时候，若发现<script type="math/tex">a</script>和<script type="math/tex">b</script>互相支配，则证明当前选择的节点无论怎么继续走都会发生冲突，即找到了一种可以只需要试探一次就能发现冲突的快冲突响应方法，PSFCR算法可以使用伪码描述为算法4。</p>
+<p>分步结果的示意图如下图所示，其中(a)为执行颜色混合信息流的结果，(b)为接着执行已知区域到未知区域信息流的结果，(c)为接着执行未知点内部信息流的结果，(d)为接着执行局部信息流的结果。其中蓝色框和黄色框的区域分别为结果局部放大的图像。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法4：PSFCR 按优先级排序的快冲突响应算法
+<p>通过该结果可以看出，颜色混合信息流可以基本获取到未知点的透明度，该结果可以保留大量的孔洞特征，图(a)的黄色框中叶子缝隙保留完整。但是距离背景近的未知点可能整块都被错误判断为背景，图(a)的蓝色框中许多叶子全都被判断为背景，这是由于这些叶子内 部颜色相近，颜色混合信息流的邻近点可能全取自未知点，导致这些叶子判断错误。</p>
 
-输入：T (每条道路所需的时间)
-	 N (游玩项目总数)
-输出：X (最优游玩序列)
+<p>已知区域到未知区域信息流的结果弥补了颜色混合信息流的缺陷，由于邻近点都是从已知区域中选取的，所以图(b)的蓝色框中的叶子被正确判断为前景。但由于该信息流的空间约束很大，造成前景内部的孔洞特征消失，从图(b)的黄色框中可以看出，原本叶子间的缝隙 完全消失了。</p>
 
- 1: U ← {1,...,n}
- 2: i ← 0
- 3: A[i] ← 0
- 4: c,F ← non_domination_sort(i,U)
- 5: if c then
- 6:     return ∅
- 4: X ← reverse(PSFCR_recall(i,U,F))
- 5: return X
-</code></pre></div></div>
+<p>未知区域内部信息流由于空间约束条件小，可以从很远的地方寻找颜色相近的邻近点，从而弥 补已知区域到未知区域信息流照成孔洞特征消失的缺陷，从图 2(c)的黄色框中可以看出，叶子间的缝隙被复原了一些。但是边缘的噪声也随之增加了，图 2(c)的蓝色框中叶子边缘 的噪声更多了。所以未知区域内部信息流并不一定可以使结果变得更好，要做取舍。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法5：non_domination_sort 非支配排序算法
+<p>局部信息流由于是在局部窗口中传播，所以可以使得最终结果变得更加平滑。</p>
 
-输入：i (当前访问的项目下标)
-	 U (未访问序列)
-输出：c (是否发生冲突)
-     F (非支配的项目序列)
- 
- 1: F ← ∅
- 2: d ← {0,...,0}
- 3: for i in range(0,len(U))
- 4:     for j in range(i+1,len(U))
- 5:         if i ≺ j then // means i dominate j
- 6:             d[i]++
- 7:         elseif j ≺ i then
- 8:		        d[j]++
- 9:         end if
-10:         if i ≺ j and j ≺ i then
-11:             return True,∅
-12:         end if
-13:		end for
-14: end for
-15: for i in U
-16:     if d[i]=0 then
-17:		    F ← F ∪ i
-18: F ← time_sort(F)
-19: return False,F
-</code></pre></div></div>
+<p><img src="/img/in-post/IFM-20190610/02.png" alt="img_2 分步结果示意图" /></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>算法6：PSFCR_recall PSFCR中的递归函数
+<p>2、运行时间</p>
 
-输入：i (当前访问的项目下标)
-	 U (未访问序列)
-	 F (非支配的项目序列)
-输出：c (是否发生冲突)
-     X (当前递归排序完毕的项目序列)
+<p>运行时间如下图所示，其中 Python 为本实验复现的结果，MATLAB 为作者提供源码的结果。</p>
 
- 1: c ← False
- 2: X ← ∅
- 3: if F=∅ and U≠∅ then
- 4:     return True,∅
- 5: for j in U do
- 6:     A[j] ← compute_arrive_time(i,j)
- 7:     c,F ← non_domination_sort(i,U)
- 8:     if c then
- 9:        continue
-10:     end if
-11:     U ← U - j
-12:     c,X ← PSFCR_recall(j,U,F)
-13:     if not c then
-14:         break
-15:     end if
-16:     U ← U + j
-17: end for
-18: if c then
-19:     return True,∅
-20: end if
-21: X ← X ∪ i
-22: return Flase,X
-</code></pre></div></div>
+<p><img src="/img/in-post/IFM-20190610/03.png" alt="img_3 运行时间比较" /></p>
 
-<p>经计算，时间复杂度最好为<script type="math/tex">O(n^3)</script>，最差为<script type="math/tex">O(n^3)</script>，平均为<script type="math/tex">O(n^3)</script>。</p>
+<p>从图中可以看出复现结果与作者提供的结果相差无几。除了 net 的测试集以外均可在 50s 左右得出 结果，与论文中描述一致。</p>
 
-<h3 id="进一步优化">进一步优化</h3>
+<p>3、与作者提供源码结果的差异</p>
 
-<p>这里要推翻一下最开始的假设了。细心的朋友可能会发现我之前根本是在胡说八道，没错，基础问题用贪心算法求出来的解并不是最优解，只是一个比较好的可行解而已。具体如下图所示。</p>
+<p>由于论文中没有三分图预处理的具体方法，故只将未作预处理的结果进行比较。两种之间没有肉眼可见的区别，但是还是有部分像素差，主要原因是因为 PCG 算法的差异导致的，目前没有 找到计算结果和 MATLAB 完全一致的 Python 替代算法。但是其结果在 alphamatting.com 上测试并没有明显差别，其中 MSE 的差别如下图所示。</p>
 
-<p><img src="/img/in-post/CRP-20190506/01.png" alt="贪心失败" /></p>
+<p><img src="/img/in-post/IFM-20190610/04.png" alt="img_4 MSE比较" /></p>
 
-<p>这个问题主要出在<strong>区域选择</strong>上，贪心算法有可能会先走到一个游玩项目比较偏远的区域，导致回到其他区域时花费异常大的时间。如果还要按照之前的方法，就需要穷举出所有的可行解。当然因为需要所有可行解，那么每个节点的排序操作就可以省略了，经计算无PSFCR时间复杂度为<script type="math/tex">O(n^n)</script>，有PSFCR时间复杂度为<script type="math/tex">O(n^3l)</script>，其中<script type="math/tex">n</script>为结点个数，<script type="math/tex">l</script>为可行解数目。当<script type="math/tex">% <![CDATA[
-l<(n-2)! %]]></script>时，有PSFCR的方法更优。即，可行解越少（约束越强）PSFCR算法越好。</p>
+<p>在对比实验时也将每一步算出来的权重进行了比较，没有差异，故本实验已经将论文中所提到 的算法流程进行了复现。</p>
 
-<p>这样确实可以求出最优解，但是在可行解偏多的情况下速度很不理想。由于其本身是一个NP问题，故应该找到一个符合时间约束的较优解即可。使用贪心算法的PSFCR就给出了一个较优解，再次基础之上，添加<strong>区域选择算法</strong>（AS），使算法获得更为优秀的可行解。要进行区域选择，首先要进行<strong>区域划分</strong>。</p>
+<p>4、与原文结果的差异</p>
 
-<h4 id="区域划分">区域划分</h4>
+<p>作者提供的源码与论文中的结果存在一定差距，但作者强调该源码为论文的复现版本，不提供论文的原始代码，可以依照该复现版本进行对比实验和改进。故将两者进行了简单的比较，如下图所示，其中(a)为实验结果、(b)为论文结果、(c)修改参数的结果。通过对比实验结果与论文结果可以发现，论文结果保留了更多孔洞的信息，如图黄色框。在实验分步运行阶段可知，保留孔洞信息主要通过颜色混合信息流和未知区域内部信息流完成。故将对应过程 的系数增加，得到图(c)的结果。从结果可以发现，黄框部分的孔洞细节更接近论文结 果，但是蓝色框部分的噪声也随之增加，这部分在上文也论述过原因。</p>
 
-<p>假设线段<script type="math/tex">AB</script>长度等于线段<script type="math/tex">AC</script>长度，<script type="math/tex">\angle A</script>小于60°时，<script type="math/tex">% <![CDATA[
-CB<AB=AC %]]></script>，而<script type="math/tex">\angle A</script>大于60°时，<script type="math/tex">CB>AB=AC</script>。故使用60°作为一个分界值。假设当前所在点为点<script type="math/tex">A</script>，任意点<script type="math/tex">X\in\{A_1\}</script>与<script type="math/tex">Y\in \{A_2\}</script>，使得<script type="math/tex">\angle XAY > 60°</script>，即<script type="math/tex">% <![CDATA[
-\frac{XA\cdot YA}{\lvert XA\rvert\lvert YA\rvert}<\cos 60°=\frac{1}{2} %]]></script>，则<script type="math/tex">A_1</script>与<script type="math/tex">A_2</script>属于不同的区域，反之属于相同区域。</p>
+<p><img src="/img/in-post/IFM-20190610/05.png" alt="img_5 与论文结果的差异比较" /></p>
 
-<p><img src="/img/in-post/CRP-20190506/02.png" alt="60°区域划分" /></p>
+<p>并非所有情况都可以通过增加未知区域信息流的权重使结果变好，如下图展示的是其中一个测试样本，图中黑色部分表示实验结果和原文结果的差异部分，图(a)为实验结果，(b)为修改参数的结果。</p>
 
-<h4 id="区域选择">区域选择</h4>
+<p><img src="/img/in-post/IFM-20190610/06.png" alt="img_6 通过减小未知区域内部信息流权重降低周围噪声示意图" /></p>
 
-<p>如果还是需要求出最优解，在划分区域后，可以将PSFCR的支配解按照区域分成一个二维数组。一个区域间算出可行解后，即可跳过整个区间，到下一个区间进行搜索。此时PSFCR-AS的时间复杂度为<script type="math/tex">O(n^3a)</script>，其中<script type="math/tex">a</script>为总区域数，并有<script type="math/tex">% <![CDATA[
-a<<l %]]></script>。由此可见区域划分极大提升了算法效率。</p>
+<p>由于该样本的前景为一个菠萝，没有孔洞信息，这样未知区域信息流的操作使得周围噪声变多的坏处要远大于解决孔洞问题所带来的好处。故尝试降低未知区域信息流的权重，得到图(b)的结果，从结果可以发现，周围的噪声明显变少了。</p>
 
-<p>但由于该算法用于一个即时交互系统，只需要求出一个较优解即可。为了使得时间复杂度变为<script type="math/tex">O(n^3)</script>，就需要人为决定区域之间的访问顺序。目前可以根据<strong>平均距离</strong>或<strong>最远距离</strong>来判断访问顺序。为了减少回头路的长度，应该优先选择距离较近的区域访问。但平均距离和最远距离都只能解决部分情况，依概率，平均距离可以解决的情况更多。故我们选择先访问平均距离最短的区域。该算法只能求出较优解，伪码如下。</p>
-
-<p>[PSFCR-AS/AD伪码]</p>
+<p>所以我认为论文中的结果可能根据样本的不同调节了参数，选择了每个样本最好的结果放到测 试集上进行测试。或者是作者隐藏了可以判断是否存在大量孔洞或其他情况的方法，可以自动调节参数。</p>
 
 
                 <hr>
@@ -379,13 +321,9 @@ a<<l %]]></script>。由此可见区域划分极大提升了算法效率。</p>
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2019/05/01/NSGA-II/" data-toggle="tooltip" data-placement="top" title="NSGA-II">&larr; Previous Post</a>
+                        <a href="/2019/05/06/CRP/" data-toggle="tooltip" data-placement="top" title="CRP">&larr; Previous Post</a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2019/06/10/IFM/" data-toggle="tooltip" data-placement="top" title="Reimplementation of Information Flow Matting">Next Post &rarr;</a>
-                    </li>
                     
                 </ul>
 
